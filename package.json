@@ -1,0 +1,42 @@
+{
+  "name": "polkadot_dashboard",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tailwind-init": "tailwindcss init -p",
+    "start": "vite",
+    "polkadot-api-test": "ts-node src/polkadot-api-test.ts",
+    "subscan-test": "ts-node src/subscan-test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  },
+  "dependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+    "@polkadot/api": "^16.4.8",
+    "axios": "^1.12.2",
+    "buffer": "^6.0.3",
+    "dotenv": "^17.2.3",
+    "process": "^0.11.10",
+    "recharts": "^3.2.1",
+    "stream-browserify": "^3.0.0"
+  }
+}
