@@ -30,7 +30,7 @@ export const useTransactions = (address: string | null | undefined) => {
 
     const response = await fetchSubscanData<TransactionHistoryData>('account/transfer', {
       address,
-      row: 10,
+      row: 25,
       page: 0,
     });
 
