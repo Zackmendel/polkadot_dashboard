@@ -116,18 +116,18 @@ const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ address }) => {
       aria-labelledby="portfolio-heading"
       aria-describedby="portfolio-description"
       aria-busy={loading || isRefreshing}
-      className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 dark:border-slate-700 dark:bg-slate-900"
+      className="mt-18 rounded-2xl border border-border bg-surface p-6 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 id="portfolio-heading" className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <h2 id="portfolio-heading" className="text-2xl font-semibold text-foreground">
             Cross-parachain portfolio
           </h2>
-          <p id="portfolio-description" className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <p id="portfolio-description" className="mt-1 text-sm text-foreground-muted">
             Token balances and distribution across the Polkadot ecosystem.
           </p>
           {lastUpdated && (
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
+            <p className="mt-2 text-xs text-foreground-subtle" aria-live="polite">
               Last updated {new Date(lastUpdated).toLocaleTimeString()}
             </p>
           )}
@@ -135,7 +135,7 @@ const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ address }) => {
         <button
           type="button"
           onClick={() => loadBalances(true)}
-          className="inline-flex items-center gap-2 self-start rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+          className="inline-flex items-center gap-2 self-start rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label="Refresh portfolio balances"
         >
           <span aria-hidden="true" className="text-base">
@@ -147,28 +147,26 @@ const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ address }) => {
 
       <div className="mt-6 space-y-6" aria-live="polite">
         {loading ? (
-          <p role="status" className="text-sm text-slate-600 dark:text-slate-300">
+          <p role="status" className="text-sm text-foreground-muted">
             Loading balances…
           </p>
         ) : error ? (
-          <p role="alert" className="text-sm font-medium text-rose-600 dark:text-rose-400">
+          <p role="alert" className="text-sm font-medium text-error">
             {error}
           </p>
         ) : balances.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            No balances found for this address.
-          </p>
+          <p className="text-sm text-foreground-muted">No balances found for this address.</p>
         ) : (
           <>
-            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <p className="text-lg font-semibold text-foreground">
               Total portfolio value:{' '}
-              <span className="font-bold text-sky-600 dark:text-sky-300">
+              <span className="font-bold text-primary">
                 ${totalUSDValue.toFixed(2)} USD
               </span>
             </p>
 
             {pieChartData.length > 0 && (
-              <div className="w-full rounded-xl bg-slate-50 p-4 dark:bg-slate-800/40">
+              <div className="w-full rounded-xl bg-surface-subtle p-4">
                 <div className="h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -196,32 +194,32 @@ const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ address }) => {
             )}
 
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700" aria-label="Token balances">
-                <thead className="bg-slate-100 dark:bg-slate-800/60">
+              <table className="min-w-full divide-y divide-border/60" aria-label="Token balances">
+                <thead className="bg-surface-subtle">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                       Token
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                       Balance
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                       USD value
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                <tbody className="divide-y divide-border/60">
                   {balances.map((token) => {
                     const balanceInUnits = parseFloat(token.balance) / 10 ** token.decimals;
                     const usdValue = balanceInUnits * parseFloat(token.price_usd || '0');
 
                     return (
-                      <tr key={token.asset_id} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/60">
-                        <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">{token.symbol}</td>
-                        <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">
+                      <tr key={token.asset_id} className="hover:bg-surface-subtle/70">
+                        <td className="px-6 py-4 text-sm text-foreground">{token.symbol}</td>
+                        <td className="px-6 py-4 text-sm text-foreground">
                           {balanceInUnits.toFixed(4)}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">
+                        <td className="px-6 py-4 text-sm text-foreground">
                           ${usdValue.toFixed(2)}
                         </td>
                       </tr>

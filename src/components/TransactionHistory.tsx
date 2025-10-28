@@ -101,18 +101,18 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
       aria-labelledby="transactions-heading"
       aria-describedby="transactions-description"
       aria-busy={loading || isRefreshing}
-      className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500 dark:border-slate-700 dark:bg-slate-900"
+      className="mt-18 rounded-2xl border border-border bg-surface p-6 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 id="transactions-heading" className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <h2 id="transactions-heading" className="text-2xl font-semibold text-foreground">
             Transaction history
           </h2>
-          <p id="transactions-description" className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <p id="transactions-description" className="mt-1 text-sm text-foreground-muted">
             Latest transfers and extrinsic calls recorded for this wallet.
           </p>
           {lastUpdated && (
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
+            <p className="mt-2 text-xs text-foreground-subtle" aria-live="polite">
               Last updated {new Date(lastUpdated).toLocaleTimeString()}
             </p>
           )}
@@ -120,7 +120,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
         <button
           type="button"
           onClick={() => loadTransactions(true)}
-          className="inline-flex items-center gap-2 self-start rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+          className="inline-flex items-center gap-2 self-start rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label="Refresh transaction history"
         >
           <span aria-hidden="true" className="text-base">
@@ -132,69 +132,65 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
 
       <div className="mt-6" aria-live="polite">
         {loading ? (
-          <p role="status" className="text-sm text-slate-600 dark:text-slate-300">
+          <p role="status" className="text-sm text-foreground-muted">
             Loading transaction history…
           </p>
         ) : error ? (
-          <p role="alert" className="text-sm font-medium text-rose-600 dark:text-rose-400">
+          <p role="alert" className="text-sm font-medium text-error">
             {error}
           </p>
         ) : renderedTransactions.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            No transaction history found for this address.
-          </p>
+          <p className="text-sm text-foreground-muted">No transaction history found for this address.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700" aria-label="Recent transactions">
-              <thead className="bg-slate-100 dark:bg-slate-800/60">
+            <table className="min-w-full divide-y divide-border/60" aria-label="Recent transactions">
+              <thead className="bg-surface-subtle">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                     Hash
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                     Block
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                     Timestamp
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                     Amount (DOT)
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground-muted">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="divide-y divide-border/60">
                 {renderedTransactions.map((tx) => {
                   const truncatedHash = `${tx.hash.substring(0, 6)}…${tx.hash.substring(tx.hash.length - 6)}`;
                   const amount = formatAmount(tx.amount);
                   const statusClasses = tx.success
-                    ? 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-200'
-                    : 'bg-rose-500/15 text-rose-600 dark:bg-rose-400/20 dark:text-rose-200';
+                    ? 'bg-success/20 text-success'
+                    : 'bg-error/20 text-error';
 
                   return (
-                    <tr key={tx.hash} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/60">
-                      <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">
+                    <tr key={tx.hash} className="hover:bg-surface-subtle/70">
+                      <td className="px-6 py-4 text-sm text-foreground">
                         <span className="font-mono" aria-label={`Transaction hash ${tx.hash}`}>
                           {truncatedHash}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">{tx.block_num}</td>
-                      <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">
+                      <td className="px-6 py-4 text-sm text-foreground">{tx.block_num}</td>
+                      <td className="px-6 py-4 text-sm text-foreground">
                         {new Date(tx.block_timestamp * 1000).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">
+                      <td className="px-6 py-4 text-sm text-foreground">
                         {`${tx.module}.${tx.call_module_function}`}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-200">{amount}</td>
+                      <td className="px-6 py-4 text-sm text-foreground">{amount}</td>
                       <td className="px-6 py-4 text-sm">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClasses}`}
-                        >
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClasses}`}>
                           {tx.success ? 'Success' : 'Failed'}
                         </span>
                       </td>

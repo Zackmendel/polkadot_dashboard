@@ -26,19 +26,19 @@ const WalletAddressInput: React.FC<WalletAddressInputProps> = ({ onAddressSubmit
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition dark:border-slate-700 dark:bg-slate-900"
+      className="rounded-2xl border border-border bg-surface p-6 shadow-sm transition"
       aria-labelledby="wallet-address-form-heading"
     >
       <div className="space-y-4">
         <div>
-          <h2 id="wallet-address-form-heading" className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+          <h2 id="wallet-address-form-heading" className="text-xl font-semibold text-foreground">
             Connect your wallet
           </h2>
-          <p id="wallet-address-helper" className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <p id="wallet-address-helper" className="mt-1 text-sm text-foreground-muted">
             Enter a Polkadot wallet address to load balances, staking, and governance activity.
           </p>
         </div>
-        <label htmlFor="walletAddress" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+        <label htmlFor="walletAddress" className="block text-sm font-medium text-foreground">
           Wallet address
         </label>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -52,26 +52,26 @@ const WalletAddressInput: React.FC<WalletAddressInputProps> = ({ onAddressSubmit
             aria-describedby="wallet-address-helper wallet-address-instructions"
             aria-invalid={isInvalid ? 'true' : 'false'}
             autoComplete="off"
-            className={`flex-1 rounded-lg border px-4 py-2 text-base text-slate-900 shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 dark:text-slate-100 ${
+            className={`flex-1 rounded-lg border px-4 py-2 text-base text-foreground shadow-sm transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
               isInvalid
-                ? 'border-rose-500 focus-visible:outline-rose-500 dark:border-rose-500'
-                : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800'
+                ? 'border-error focus-visible:ring-error'
+                : 'border-border bg-surface focus-visible:ring-primary'
             }`}
             inputMode="text"
           />
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-lg border border-sky-500 bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+            className="inline-flex items-center justify-center rounded-lg border border-primary bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             aria-label="Load dashboard data for wallet address"
           >
             Load Dashboard
           </button>
         </div>
-        <p id="wallet-address-instructions" className="text-xs text-slate-500 dark:text-slate-400">
+        <p id="wallet-address-instructions" className="text-xs text-foreground-subtle">
           Address is requested on demand only – no data is persisted.
         </p>
         {isInvalid && (
-          <p role="alert" className="text-sm font-medium text-rose-600 dark:text-rose-400">
+          <p role="alert" className="text-sm font-medium text-error">
             Please enter a wallet address before continuing.
           </p>
         )}
