@@ -41,10 +41,22 @@ const generateId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
-const variantClasses: Record<ToastIntent, string> = {
-  success: 'border-emerald-400/60 bg-emerald-600 text-white shadow-emerald-500/40 dark:border-emerald-400/40 dark:bg-emerald-500 dark:text-emerald-50',
-  error: 'border-rose-400/60 bg-rose-600 text-white shadow-rose-500/40 dark:border-rose-400/40 dark:bg-rose-500 dark:text-rose-50',
-  info: 'border-sky-400/60 bg-slate-900 text-slate-100 shadow-sky-500/20 dark:border-sky-400/40 dark:bg-slate-800 dark:text-slate-100',
+const variantStyles: Record<ToastIntent, { container: string; description: string; close: string }> = {
+  success: {
+    container: 'border-success/35 bg-success/15 text-success shadow-lg',
+    description: 'text-success/80',
+    close: 'bg-success/10 text-success hover:bg-success/20',
+  },
+  error: {
+    container: 'border-error/35 bg-error/15 text-error shadow-lg',
+    description: 'text-error/80',
+    close: 'bg-error/10 text-error hover:bg-error/20',
+  },
+  info: {
+    container: 'border-accent/35 bg-surface text-foreground shadow-lg',
+    description: 'text-foreground-muted',
+    close: 'bg-accent/10 text-accent hover:bg-accent/20',
+  },
 };
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -217,7 +229,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             role={toast.intent === 'error' ? 'alert' : 'status'}
             aria-live={toast.intent === 'error' ? 'assertive' : 'polite'}
             aria-atomic="true"
-            className={`pointer-events-auto overflow-hidden rounded-xl border px-4 py-3 shadow-lg transition duration-200 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 ${variantClasses[toast.intent]}`}
+            className={`pointer-events-auto overflow-hidden rounded-xl border px-4 py-3 transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${variantStyles[toast.intent].container}`}
             onMouseEnter={() => pauseTimer(toast.id)}
             onMouseLeave={() => resumeTimer(toast.id)}
             onFocusCapture={() => pauseTimer(toast.id)}
@@ -227,14 +239,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               <div className="flex-1">
                 <p className="text-sm font-semibold">{toast.title}</p>
                 {toast.description && (
-                  <p className="mt-1 text-sm text-white/90 dark:text-white/90">
+                  <p className={`mt-1 text-sm ${variantStyles[toast.intent].description}`}>
                     {toast.description}
                   </p>
                 )}
               </div>
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center rounded-full bg-black/10 p-1 text-xs text-white transition hover:bg-black/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 dark:bg-white/10 dark:hover:bg-white/20"
+                className={`inline-flex shrink-0 items-center justify-center rounded-full p-1 text-xs transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background ${variantStyles[toast.intent].close}`}
                 onClick={() => removeToast(toast.id)}
                 aria-label="Dismiss notification"
               >

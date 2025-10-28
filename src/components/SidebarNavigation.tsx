@@ -96,12 +96,12 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
   return (
     <aside
-      className={`hidden border-r border-slate-200 bg-white transition-all duration-200 ease-out focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 dark:border-slate-800 dark:bg-slate-950 md:flex ${isOpen ? 'w-64' : 'w-20'}`}
+      className={`hidden border-r border-border bg-surface transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:flex ${isOpen ? 'w-64' : 'w-20'}`}
       aria-label="Dashboard sections"
     >
       <div className="flex w-full flex-col gap-4 px-4 py-6">
         <div className="flex items-center justify-between">
-          <h2 id="sidebar-heading" className="text-base font-semibold text-slate-800 dark:text-slate-100">
+          <h2 id="sidebar-heading" className="text-base font-semibold text-foreground">
             Navigation
           </h2>
           <button
@@ -109,7 +109,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
             onClick={onToggle}
             aria-expanded={isOpen}
             aria-controls="dashboard-sections"
-            className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             aria-label={isOpen ? 'Collapse sidebar navigation' : 'Expand sidebar navigation'}
           >
             {isOpen ? '⟨' : '⟩'}
@@ -129,10 +129,10 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                       itemRefs.current[index] = element;
                     }}
                     tabIndex={focusIndex === index ? 0 : -1}
-                    className={`group inline-flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 ${
+                    className={`group inline-flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
                       isActive
-                        ? 'bg-sky-600 text-white shadow-sm dark:bg-sky-500'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                        ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary'
+                        : 'text-foreground hover:bg-surface-subtle'
                     }`}
                     aria-current={isActive ? 'page' : undefined}
                     onClick={() => onSelect(item.id)}
@@ -141,10 +141,10 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                   >
                     <span
                       aria-hidden="true"
-                      className={`flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold transition ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold transition-colors duration-200 ${
                         isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-slate-200 text-slate-700 group-hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:group-hover:bg-slate-600'
+                          ? 'bg-primary/20 text-primary'
+                          : 'bg-surface-subtle text-foreground group-hover:bg-surface-hover'
                       }`}
                     >
                       {initial}

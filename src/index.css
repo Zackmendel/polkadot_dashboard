@@ -2,4 +2,120 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  --font-sans: 'Inter', 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Cal Sans', 'Inter', 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --color-background: 248 250 252;
+  --color-surface: 255 255 255;
+  --color-surface-subtle: 241 245 249;
+  --color-surface-raised: 226 232 240;
+  --color-surface-hover: 226 232 240;
+  --color-border: 208 216 230;
+  --color-divider: 15 23 42;
+  --color-foreground: 15 23 42;
+  --color-foreground-muted: 71 85 105;
+  --color-foreground-subtle: 100 116 139;
+  --color-foreground-inverted: 248 250 252;
+  --color-primary: 14 165 233;
+  --color-primary-hover: 2 132 199;
+  --color-primary-muted: 186 230 253;
+  --color-primary-foreground: 240 249 255;
+  --color-accent: 99 102 241;
+  --color-accent-hover: 79 70 229;
+  --color-accent-foreground: 238 242 255;
+  --color-success: 34 197 94;
+  --color-success-hover: 22 163 74;
+  --color-success-foreground: 240 253 244;
+  --color-error: 239 68 68;
+  --color-error-hover: 220 38 38;
+  --color-error-foreground: 254 242 242;
+  --color-ring: 14 165 233;
+  --color-overlay: 15 23 42;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 8px 16px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.18);
+  --shadow-overlay: 0 25px 60px -15px rgba(15, 23, 42, 0.28);
+}
 
+.dark {
+  color-scheme: dark;
+  --color-background: 2 6 23;
+  --color-surface: 15 23 42;
+  --color-surface-subtle: 17 27 46;
+  --color-surface-raised: 30 41 59;
+  --color-surface-hover: 34 49 77;
+  --color-border: 30 42 74;
+  --color-divider: 148 163 184;
+  --color-foreground: 226 232 240;
+  --color-foreground-muted: 148 163 184;
+  --color-foreground-subtle: 100 116 139;
+  --color-foreground-inverted: 2 6 23;
+  --color-primary: 56 189 248;
+  --color-primary-hover: 14 165 233;
+  --color-primary-muted: 12 74 110;
+  --color-primary-foreground: 4 21 37;
+  --color-accent: 168 85 247;
+  --color-accent-hover: 147 51 234;
+  --color-accent-foreground: 24 4 50;
+  --color-success: 74 222 128;
+  --color-success-hover: 34 197 94;
+  --color-success-foreground: 5 46 22;
+  --color-error: 248 113 113;
+  --color-error-hover: 239 68 68;
+  --color-error-foreground: 69 10 10;
+  --color-ring: 56 189 248;
+  --color-overlay: 8 11 23;
+  --shadow-sm: 0 1px 2px rgba(8, 11, 23, 0.6);
+  --shadow-md: 0 8px 24px rgba(8, 11, 23, 0.65);
+  --shadow-lg: 0 20px 60px rgba(8, 11, 23, 0.75);
+  --shadow-overlay: 0 30px 80px -20px rgba(8, 11, 23, 0.85);
+}
+
+@layer base {
+  html {
+    min-height: 100%;
+    scroll-behavior: smooth;
+  }
+
+  :root {
+    font-family: var(--font-sans);
+    background-color: rgb(var(--color-background) / 1);
+    color: rgb(var(--color-foreground) / 1);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: rgb(var(--color-background) / 1);
+    color: rgb(var(--color-foreground) / 1);
+    font-family: inherit;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  *, ::before, ::after {
+    border-color: rgb(var(--color-border) / 0.65);
+  }
+
+  ::selection {
+    background-color: rgb(var(--color-primary) / 0.2);
+    color: rgb(var(--color-primary-foreground) / 1);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: rgb(var(--color-foreground) / 1);
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+}
