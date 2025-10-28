@@ -4,10 +4,13 @@ import BalanceDisplay from './components/BalanceDisplay';
 import StakingOverview from './components/StakingOverview';
 import GovernanceParticipation from './components/GovernanceParticipation';
 import TransactionHistory from './components/TransactionHistory';
-import SidebarNavigation, { SidebarItem } from './components/SidebarNavigation';
 import { useTheme } from './components/theme/ThemeProvider';
+import DashboardShell from './layout/DashboardShell';
+import Header from './layout/Header';
+import SidebarNav, { SidebarNavItem } from './layout/SidebarNav';
+import MainContent from './layout/MainContent';
 
-const SECTION_ITEMS: SidebarItem[] = [
+const SECTION_ITEMS: SidebarNavItem[] = [
   { id: 'portfolio', label: 'Portfolio overview' },
   { id: 'staking', label: 'Staking overview' },
   { id: 'governance', label: 'Governance participation' },
@@ -17,7 +20,8 @@ const SECTION_ITEMS: SidebarItem[] = [
 const App: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>(SECTION_ITEMS[0].id);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isDesktopSidebarExpanded, setIsDesktopSidebarExpanded] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
   const mainRef = useRef<HTMLElement | null>(null);
@@ -36,10 +40,13 @@ const App: React.FC = () => {
   const handleAddressSubmit = (address: string) => {
     setWalletAddress(address);
     setActiveSection(SECTION_ITEMS[0].id);
+    setIsDesktopSidebarExpanded(true);
+    setIsMobileSidebarOpen(false);
   };
 
   const handleSectionSelect = (sectionId: string) => {
     setActiveSection(sectionId);
+    setIsMobileSidebarOpen(false);
 
     const target = document.getElementById(sectionId);
     if (target) {
@@ -51,8 +58,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleResetWallet = () => {
+    setWalletAddress(null);
+    setActiveSection(SECTION_ITEMS[0].id);
+    setIsDesktopSidebarExpanded(true);
+    setIsMobileSidebarOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="bg-background text-foreground transition-colors duration-300">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -73,92 +87,55 @@ const App: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="flex min-h-screen flex-col md:flex-row">
-          <SidebarNavigation
-            items={SECTION_ITEMS}
-            activeItem={activeSection}
-            onSelect={handleSectionSelect}
-            isOpen={sidebarOpen}
-            onToggle={() => setSidebarOpen((prev) => !prev)}
-          />
-
-          <main
-            id="main-content"
+        <DashboardShell
+          header={
+            <Header
+              walletAddress={walletAddress}
+              theme={theme}
+              onThemeToggle={toggleTheme}
+              onChangeAddress={handleResetWallet}
+              isMobileSidebarOpen={isMobileSidebarOpen}
+              onMobileSidebarToggle={() => setIsMobileSidebarOpen((prev) => !prev)}
+            />
+          }
+          sidebar={
+            <SidebarNav
+              items={SECTION_ITEMS}
+              activeItem={activeSection}
+              onSelect={handleSectionSelect}
+              isDesktopExpanded={isDesktopSidebarExpanded}
+              onDesktopToggle={() => setIsDesktopSidebarExpanded((prev) => !prev)}
+              isMobileOpen={isMobileSidebarOpen}
+              onMobileClose={() => setIsMobileSidebarOpen(false)}
+            />
+          }
+        >
+          <MainContent
             ref={mainRef}
-            tabIndex={-1}
-            aria-label="Wallet dashboard content"
-            className="flex-1 px-4 py-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background sm:px-6 lg:px-12"
-          >
-            <header className="flex flex-col gap-5 border-b border-border pb-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  Connected wallet
-                </p>
-                <h1 className="mt-2 text-3xl font-bold text-foreground md:text-4xl">
-                  Universal Wallet Dashboard
-                </h1>
-                <p className="mt-1 font-mono text-sm text-primary" aria-live="polite">
-                  {walletAddress}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  aria-pressed={theme === 'dark'}
-                  aria-label={theme === 'dark' ? 'Activate light theme' : 'Activate dark theme'}
-                  className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  {theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSidebarOpen((prev) => !prev)}
-                  className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors duration-200 hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:hidden"
-                  aria-label={sidebarOpen ? 'Collapse sidebar navigation' : 'Expand sidebar navigation'}
-                  aria-pressed={sidebarOpen}
-                >
-                  {sidebarOpen ? 'Hide sections' : 'Show sections'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setWalletAddress(null)}
-                  className="inline-flex items-center justify-center rounded-full border border-transparent bg-error px-4 py-2 text-sm font-semibold text-error-foreground shadow-sm transition-colors duration-200 hover:bg-error-hover focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  aria-label="Change wallet address"
-                >
-                  Change address
-                </button>
-              </div>
-            </header>
-
-            <nav aria-label="Dashboard sections" className="mt-6 mb-8 md:hidden">
-              <div className="flex flex-wrap gap-2">
-                {SECTION_ITEMS.map((item) => {
-                  const isActive = activeSection === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSectionSelect(item.id)}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                        isActive
-                          ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary'
-                          : 'border border-border bg-surface text-foreground hover:bg-surface-hover'
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-
-            <BalanceDisplay address={walletAddress} />
-            <StakingOverview address={walletAddress} />
-            <GovernanceParticipation address={walletAddress} />
-            <TransactionHistory address={walletAddress} />
-          </main>
-        </div>
+            sections={[
+              {
+                key: 'portfolio',
+                content: <BalanceDisplay address={walletAddress} />,
+                className: 'lg:col-span-12 xl:col-span-8',
+              },
+              {
+                key: 'staking',
+                content: <StakingOverview address={walletAddress} />,
+                className: 'lg:col-span-6 xl:col-span-4',
+              },
+              {
+                key: 'governance',
+                content: <GovernanceParticipation address={walletAddress} />,
+                className: 'lg:col-span-6 xl:col-span-6',
+              },
+              {
+                key: 'transactions',
+                content: <TransactionHistory address={walletAddress} />,
+                className: 'lg:col-span-12 xl:col-span-6',
+              },
+            ]}
+          />
+        </DashboardShell>
       )}
     </div>
   );
