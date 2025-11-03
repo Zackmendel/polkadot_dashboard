@@ -15,6 +15,11 @@ from subscan import (
     flatten_json,
     get_full_account_snapshot
 )
+from chart_components import (
+    render_monthly_voters_voting_power,
+    render_ecosystem_basic_metrics,
+    render_treasury_flow
+)
 
 # ============================================================================
 # CUSTOM CSS - PROFESSIONAL UI/UX DESIGN
@@ -335,9 +340,11 @@ session_defaults = {
     "votes_df": pd.DataFrame(),
     "account_data_snapshot": None,
     "chat_messages": [],
-    "current_view": "Wallet Activity",
+    "current_view": "Ecosystem Overview",
     "governance_voters": None,
     "governance_proposals": None,
+    "wallet_address": "",
+    "selected_chain": "Polkadot",
 }
 
 for k, v in session_defaults.items():
@@ -375,23 +382,17 @@ with main_col:
     st.divider()
     
     # ========================================================================
-    # NAVIGATION - Main View Selector
+    # WALLET INPUT - Always Visible
     # ========================================================================
-    view_option = st.radio(
-        "📊 Select Dashboard View:",
-        ["Wallet Activity", "Governance Monitor"],
-        horizontal=True,
-        key="main_view_selector"
-    )
-    st.session_state.current_view = view_option
-    
-    st.divider()
-    
-    # ========================================================================
-    # WALLET ACTIVITY VIEW
-    # ========================================================================
-    if view_option == "Wallet Activity":
-        # Chain selection and configuration
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        wallet_input = st.text_input(
+            "🔑 Enter Wallet Address:",
+            value=st.session_state.wallet_address if st.session_state.wallet_address else "15g4zgBFXtbPv2JMgf21DQZP851BeMJJqmAsE9R3MMaWea71",
+            help="Enter a valid Polkadot/Substrate address",
+            key="wallet_input_field"
+        )
+    with col2:
         CHAIN_OPTIONS = {
             "Polkadot": "polkadot",
             "Kusama": "kusama",
@@ -414,53 +415,125 @@ with main_col:
             "Unique": "unique",
             "Zeitgeist": "zeitgeist"
         }
-        
-        # Input section
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            account_key = st.text_input(
-                "🔑 Enter Wallet Address:",
-                "15g4zgBFXtbPv2JMgf21DQZP851BeMJJqmAsE9R3MMaWea71",
-                help="Enter a valid Polkadot/Substrate address"
-            )
-        with col2:
-            selected_chain = st.selectbox(
-                "🔗 Select Network:",
-                options=list(CHAIN_OPTIONS.keys()),
-                index=0
-            )
-        
-        chain_key = CHAIN_OPTIONS[selected_chain]
-        
-        try:
-            API_KEY = st.secrets["SUBSCAN_API_KEY"]
-        except:
-            API_KEY = None
+        chain_selector = st.selectbox(
+            "🔗 Select Network:",
+            options=list(CHAIN_OPTIONS.keys()),
+            index=list(CHAIN_OPTIONS.keys()).index(st.session_state.selected_chain) if st.session_state.selected_chain in CHAIN_OPTIONS else 0,
+            key="chain_selector_field"
+        )
+    
+    # Fetch button
+    try:
+        API_KEY = st.secrets["SUBSCAN_API_KEY"]
+    except:
+        API_KEY = None
+    
+    if st.button("🔍 Fetch Account Data", use_container_width=False):
+        if API_KEY and wallet_input:
+            chain_key = CHAIN_OPTIONS[chain_selector]
+            with st.spinner(f"Fetching data from {chain_selector}..."):
+                try:
+                    # Fetch wallet activity data
+                    response_json = fetch_account_data(chain_key, wallet_input, API_KEY)
+                    st.session_state.response_json = response_json
+                    st.session_state.data_section = response_json.get("data", {}).get("account", {})
+                    
+                    # Fetch all related data
+                    st.session_state.transfers_df = fetch_all_transfers(chain_key, wallet_input, API_KEY)
+                    st.session_state.extrinsics_df = fetch_extrinsics(chain_key, wallet_input, API_KEY)
+                    st.session_state.staking_df = fetch_staking_history(chain_key, wallet_input, API_KEY)
+                    st.session_state.votes_df = fetch_referenda_votes(chain_key, wallet_input, API_KEY)
+                    st.session_state.account_data_snapshot = get_full_account_snapshot(chain_key, wallet_input, API_KEY)
+                    
+                    # Store wallet address and chain
+                    st.session_state.wallet_address = wallet_input
+                    st.session_state.selected_chain = chain_selector
+                    
+                    # Load governance data
+                    if st.session_state.governance_voters is None or st.session_state.governance_proposals is None:
+                        voters, proposals = load_governance_data()
+                        st.session_state.governance_voters = voters
+                        st.session_state.governance_proposals = proposals
+                    
+                    st.success("✅ All data fetched successfully!")
+                    st.session_state.current_view = "Wallet Activity"
+                except Exception as e:
+                    st.error(f"❌ Error fetching data: {e}")
+        elif not API_KEY:
             st.error("⚠️ Subscan API key not found in secrets")
+        else:
+            st.warning("Please enter a wallet address")
+    
+    st.divider()
+    
+    # ========================================================================
+    # NAVIGATION - Main View Selector
+    # ========================================================================
+    view_option = st.radio(
+        "📊 Select Dashboard View:",
+        ["Ecosystem Overview", "Wallet Activity", "Governance Monitor"],
+        index=["Ecosystem Overview", "Wallet Activity", "Governance Monitor"].index(st.session_state.current_view),
+        horizontal=True,
+        key="main_view_selector"
+    )
+    st.session_state.current_view = view_option
+    
+    st.divider()
+    
+    # ========================================================================
+    # ECOSYSTEM OVERVIEW
+    # ========================================================================
+    if view_option == "Ecosystem Overview":
+        st.markdown("## 🌍 Polkadot Ecosystem Overview")
+        st.markdown("Explore comprehensive governance and ecosystem metrics across the Polkadot network.")
+        st.divider()
         
-        # Fetch button
-        if st.button("🔍 Fetch Account Data", use_container_width=False):
-            if API_KEY:
-                with st.spinner(f"Fetching data from {selected_chain}..."):
-                    try:
-                        response_json = fetch_account_data(chain_key, account_key, API_KEY)
-                        st.session_state.response_json = response_json
-                        st.session_state.data_section = response_json.get("data", {}).get("account", {})
-                        
-                        # Fetch all related data
-                        st.session_state.transfers_df = fetch_all_transfers(chain_key, account_key, API_KEY)
-                        st.session_state.extrinsics_df = fetch_extrinsics(chain_key, account_key, API_KEY)
-                        st.session_state.staking_df = fetch_staking_history(chain_key, account_key, API_KEY)
-                        st.session_state.votes_df = fetch_referenda_votes(chain_key, account_key, API_KEY)
-                        st.session_state.account_data_snapshot = get_full_account_snapshot(chain_key, account_key, API_KEY)
-                        
-                        st.success("✅ Data fetched successfully!")
-                    except Exception as e:
-                        st.error(f"❌ Error fetching data: {e}")
+        # Render ecosystem basic metrics
+        render_ecosystem_basic_metrics()
         
-        # Display dashboard if data exists
+        st.divider()
+        
+        # Render treasury flow
+        render_treasury_flow()
+        
+        if not st.session_state.wallet_address:
+            st.info("💡 Enter a wallet address above and click 'Fetch Account Data' to explore wallet-specific analytics.")
+    
+    # ========================================================================
+    # WALLET ACTIVITY VIEW
+    # ========================================================================
+    elif view_option == "Wallet Activity":
+        # Check if data has been loaded
         data_section = st.session_state.data_section
-        if data_section and API_KEY:
+        
+        if not st.session_state.wallet_address or not data_section:
+            st.warning("⚠️ No wallet data loaded. Please enter a wallet address and click 'Fetch Account Data'.")
+        elif data_section and API_KEY:
+            # Use stored chain and wallet information
+            CHAIN_OPTIONS = {
+                "Polkadot": "polkadot",
+                "Kusama": "kusama",
+                "Acala": "acala",
+                "Astar": "astar",
+                "Moonbeam": "moonbeam",
+                "Phala": "phala",
+                "Bifrost": "bifrost",
+                "Centrifuge": "centrifuge",
+                "Parallel": "parallel",
+                "HydraDX": "hydradx",
+                "Litentry": "litentry",
+                "Crust": "crust",
+                "Darwinia": "darwinia",
+                "Edgeware": "edgeware",
+                "Karura": "karura",
+                "Statemine": "statemine",
+                "Statemint": "statemint",
+                "Ternoa": "ternoa",
+                "Unique": "unique",
+                "Zeitgeist": "zeitgeist"
+            }
+            selected_chain = st.session_state.selected_chain
+            chain_key = CHAIN_OPTIONS.get(selected_chain, "polkadot")
             token_meta = get_token_metadata(chain_key, API_KEY)
             symbol = token_meta["symbol"]
             decimals = token_meta["decimals"]
@@ -669,9 +742,12 @@ with main_col:
             
             # Voter Lookup Section
             st.markdown("### 🔍 Voter Lookup")
+            default_wallet = st.session_state.wallet_address if st.session_state.wallet_address else ""
             wallet_address = st.text_input(
                 "Enter Wallet Address:",
-                help="Check governance participation for a specific address"
+                value=default_wallet,
+                help="Check governance participation for a specific address",
+                key="governance_voter_lookup"
             )
             
             if wallet_address:
@@ -1076,6 +1152,11 @@ with main_col:
                 
                 else:
                     st.warning("No governance data found for this address.")
+            
+            st.divider()
+            
+            # Monthly Voters & Voting Power Charts
+            render_monthly_voters_voting_power()
             
             st.divider()
             
