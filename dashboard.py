@@ -687,23 +687,393 @@ with main_col:
                 
                 if not voter_info.empty:
                     st.success("✅ Voter found!")
-                    st.subheader("👤 Voter Details")
-                    st.dataframe(voter_info, use_container_width=True)
                     
-                    st.subheader("📊 Voting Summary")
-                    col1, col2 = st.columns(2)
-                    total_tokens_cast = voter_info.get("total_tokens_cast")
-                    total_votes = voter_info.get("total_votes")
-                    with col1:
-                        st.metric(
-                            "Total Tokens Cast",
-                            f"{float(total_tokens_cast.sum()) if total_tokens_cast is not None else 0:,.2f}"
-                        )
-                    with col2:
-                        st.metric(
-                            "Number of Votes",
-                            f"{int(total_votes.sum()) if total_votes is not None else 0}"
-                        )
+                    # Extract voter data
+                    voter_row = voter_info.iloc[0]
+                    voter_address = str(voter_row.get("voter", wallet_address))
+                    voter_name = str(voter_row.get("voter_name", "")) if pd.notna(voter_row.get("voter_name")) else ""
+                    voter_type = str(voter_row.get("voter_type", "Unknown"))
+                    is_active = voter_row.get("is_active", False)
+                    last_vote = str(voter_row.get("last_vote_time", "N/A"))
+                    total_votes = int(voter_row.get("total_votes", 0)) if pd.notna(voter_row.get("total_votes")) else 0
+                    total_tokens = float(voter_row.get("total_tokens_cast", 0)) if pd.notna(voter_row.get("total_tokens_cast")) else 0
+                    aye_tokens = float(voter_row.get("aye_tokens", 0)) if pd.notna(voter_row.get("aye_tokens")) else 0
+                    nay_tokens = float(voter_row.get("nay_tokens", 0)) if pd.notna(voter_row.get("nay_tokens")) else 0
+                    abstain_tokens = float(voter_row.get("abstain_tokens", 0)) if pd.notna(voter_row.get("abstain_tokens")) else 0
+                    support_ratio = float(voter_row.get("support_ratio_pct", 0)) if pd.notna(voter_row.get("support_ratio_pct")) else 0
+                    delegates = str(voter_row.get("delegates", "")) if pd.notna(voter_row.get("delegates")) else ""
+                    
+                    # ===== 1. VOTER PROFILE CARD =====
+                    st.markdown("""
+                    <style>
+                        .voter-profile-card {
+                            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+                            border: 2px solid rgba(102, 126, 234, 0.3);
+                            border-radius: 20px;
+                            padding: 2rem;
+                            margin: 1.5rem 0;
+                            backdrop-filter: blur(10px);
+                        }
+                        .voter-profile-header {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 1.5rem;
+                        }
+                        .voter-avatar {
+                            width: 80px;
+                            height: 80px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 2.5rem;
+                            margin-right: 1.5rem;
+                            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+                        }
+                        .voter-info {
+                            flex: 1;
+                        }
+                        .voter-name {
+                            font-size: 1.8rem;
+                            font-weight: 700;
+                            color: #ffffff;
+                            margin-bottom: 0.5rem;
+                        }
+                        .voter-address {
+                            font-family: 'JetBrains Mono', monospace;
+                            font-size: 0.9rem;
+                            color: #a8b2d1;
+                            background: rgba(255, 255, 255, 0.08);
+                            padding: 0.5rem 1rem;
+                            border-radius: 8px;
+                            display: inline-block;
+                            margin-bottom: 0.5rem;
+                        }
+                        .voter-badges {
+                            display: flex;
+                            gap: 0.75rem;
+                            flex-wrap: wrap;
+                            margin-top: 1rem;
+                        }
+                        .voter-badge {
+                            padding: 0.5rem 1rem;
+                            border-radius: 20px;
+                            font-size: 0.85rem;
+                            font-weight: 600;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+                        .badge-active {
+                            background: rgba(16, 185, 129, 0.2);
+                            color: #10B981;
+                            border: 1px solid rgba(16, 185, 129, 0.5);
+                        }
+                        .badge-inactive {
+                            background: rgba(107, 114, 128, 0.2);
+                            color: #9CA3AF;
+                            border: 1px solid rgba(107, 114, 128, 0.5);
+                        }
+                        .badge-type {
+                            background: rgba(102, 126, 234, 0.2);
+                            color: #667eea;
+                            border: 1px solid rgba(102, 126, 234, 0.5);
+                        }
+                        .vote-stats-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                            gap: 1rem;
+                            margin: 1.5rem 0;
+                        }
+                        .vote-stat-card {
+                            background: rgba(255, 255, 255, 0.05);
+                            border: 1px solid rgba(255, 255, 255, 0.1);
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            text-align: center;
+                            transition: all 0.3s ease;
+                        }
+                        .vote-stat-card:hover {
+                            transform: translateY(-4px);
+                            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+                            border-color: rgba(102, 126, 234, 0.4);
+                        }
+                        .vote-stat-value {
+                            font-size: 2rem;
+                            font-weight: 700;
+                            margin-bottom: 0.5rem;
+                        }
+                        .vote-stat-label {
+                            font-size: 0.875rem;
+                            color: #8892b0;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                            font-weight: 500;
+                        }
+                        .distribution-bar {
+                            width: 100%;
+                            height: 40px;
+                            background: rgba(0, 0, 0, 0.3);
+                            border-radius: 20px;
+                            overflow: hidden;
+                            display: flex;
+                            margin: 1rem 0;
+                        }
+                        .bar-segment {
+                            height: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        }
+                        .bar-segment:hover {
+                            filter: brightness(1.2);
+                        }
+                        .bar-aye {
+                            background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+                        }
+                        .bar-nay {
+                            background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+                        }
+                        .bar-abstain {
+                            background: linear-gradient(90deg, #6B7280 0%, #4B5563 100%);
+                        }
+                        .legend-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            margin: 0.5rem 0;
+                        }
+                        .legend-color {
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 4px;
+                        }
+                        .progress-circle {
+                            width: 120px;
+                            height: 120px;
+                            border-radius: 50%;
+                            background: conic-gradient(
+                                #667eea 0deg,
+                                #667eea calc(var(--progress) * 3.6deg),
+                                rgba(255, 255, 255, 0.1) calc(var(--progress) * 3.6deg),
+                                rgba(255, 255, 255, 0.1) 360deg
+                            );
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 1rem auto;
+                            position: relative;
+                        }
+                        .progress-circle::before {
+                            content: '';
+                            width: 90px;
+                            height: 90px;
+                            background: #1a1a2e;
+                            border-radius: 50%;
+                            position: absolute;
+                        }
+                        .progress-value {
+                            position: relative;
+                            z-index: 1;
+                            font-size: 1.5rem;
+                            font-weight: 700;
+                            color: #667eea;
+                        }
+                    </style>
+                    """, unsafe_allow_html=True)
+                    
+                    # Voter Profile Card HTML
+                    activity_status = "Active" if is_active else "Inactive"
+                    activity_badge_class = "badge-active" if is_active else "badge-inactive"
+                    activity_icon = "🟢" if is_active else "⚫"
+                    
+                    display_name = voter_name if voter_name else "Anonymous Voter"
+                    avatar_emoji = voter_name[:2] if voter_name and len(voter_name) >= 2 else "👤"
+                    
+                    st.markdown(f"""
+                    <div class="voter-profile-card">
+                        <div class="voter-profile-header">
+                            <div class="voter-avatar">{avatar_emoji}</div>
+                            <div class="voter-info">
+                                <div class="voter-name">{display_name}</div>
+                                <div class="voter-address">{voter_address[:20]}...{voter_address[-10:]}</div>
+                            </div>
+                        </div>
+                        <div class="voter-badges">
+                            <span class="voter-badge {activity_badge_class}">{activity_icon} {activity_status}</span>
+                            <span class="voter-badge badge-type">📝 {voter_type}</span>
+                            <span class="voter-badge badge-type">🕐 Last Vote: {last_vote[:10] if last_vote != 'N/A' else 'N/A'}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Add copy button for address
+                    st.code(voter_address, language=None)
+                    
+                    st.markdown("---")
+                    
+                    # ===== 2. VOTING STATISTICS PANEL =====
+                    st.markdown("## 📊 Voting Statistics")
+                    
+                    # Key metrics in cards
+                    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+                    
+                    with metric_col1:
+                        st.markdown(f"""
+                        <div class="vote-stat-card">
+                            <div class="vote-stat-value" style="color: #64ffda;">🗳️ {total_votes:,}</div>
+                            <div class="vote-stat-label">Total Votes Cast</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with metric_col2:
+                        st.markdown(f"""
+                        <div class="vote-stat-card">
+                            <div class="vote-stat-value" style="color: #667eea;">💎 {total_tokens:,.0f}</div>
+                            <div class="vote-stat-label">Total Tokens</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with metric_col3:
+                        st.markdown(f"""
+                        <div class="vote-stat-card">
+                            <div class="vote-stat-value" style="color: #10B981;">✅ {support_ratio:.1f}%</div>
+                            <div class="vote-stat-label">Support Ratio</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with metric_col4:
+                        if delegates:
+                            delegate_display = delegates[:20] + "..." if len(delegates) > 20 else delegates
+                            st.markdown(f"""
+                            <div class="vote-stat-card">
+                                <div class="vote-stat-value" style="color: #f59e0b; font-size: 1.2rem;">🔗 {delegate_display}</div>
+                                <div class="vote-stat-label">Delegates To</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""
+                            <div class="vote-stat-card">
+                                <div class="vote-stat-value" style="color: #8892b0;">—</div>
+                                <div class="vote-stat-label">No Delegation</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    # ===== 3. VOTE DISTRIBUTION VISUALIZATION =====
+                    st.markdown("### 🎯 Vote Distribution")
+                    
+                    # Calculate percentages
+                    total_voting_tokens = aye_tokens + nay_tokens + abstain_tokens
+                    if total_voting_tokens > 0:
+                        aye_pct = (aye_tokens / total_voting_tokens) * 100
+                        nay_pct = (nay_tokens / total_voting_tokens) * 100
+                        abstain_pct = (abstain_tokens / total_voting_tokens) * 100
+                    else:
+                        aye_pct = nay_pct = abstain_pct = 0
+                    
+                    # Distribution bar
+                    st.markdown(f"""
+                    <div class="distribution-bar">
+                        <div class="bar-segment bar-aye" style="width: {aye_pct}%;" title="Aye: {aye_pct:.1f}%">
+                            {f'{aye_pct:.0f}%' if aye_pct > 10 else ''}
+                        </div>
+                        <div class="bar-segment bar-nay" style="width: {nay_pct}%;" title="Nay: {nay_pct:.1f}%">
+                            {f'{nay_pct:.0f}%' if nay_pct > 10 else ''}
+                        </div>
+                        <div class="bar-segment bar-abstain" style="width: {abstain_pct}%;" title="Abstain: {abstain_pct:.1f}%">
+                            {f'{abstain_pct:.0f}%' if abstain_pct > 10 else ''}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Legend with detailed breakdown
+                    legend_col1, legend_col2, legend_col3 = st.columns(3)
+                    
+                    with legend_col1:
+                        st.markdown(f"""
+                        <div style="text-align: center; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #10B981; margin-bottom: 0.5rem;">✅ Aye</div>
+                            <div style="font-size: 1.2rem; color: #64ffda;">{aye_tokens:,.0f} tokens</div>
+                            <div style="font-size: 0.875rem; color: #8892b0;">{aye_pct:.1f}% of votes</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with legend_col2:
+                        st.markdown(f"""
+                        <div style="text-align: center; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #EF4444; margin-bottom: 0.5rem;">❌ Nay</div>
+                            <div style="font-size: 1.2rem; color: #64ffda;">{nay_tokens:,.0f} tokens</div>
+                            <div style="font-size: 0.875rem; color: #8892b0;">{nay_pct:.1f}% of votes</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with legend_col3:
+                        st.markdown(f"""
+                        <div style="text-align: center; padding: 1rem; background: rgba(107, 114, 128, 0.1); border-radius: 12px; border: 1px solid rgba(107, 114, 128, 0.3);">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #6B7280; margin-bottom: 0.5rem;">⚪ Abstain</div>
+                            <div style="font-size: 1.2rem; color: #64ffda;">{abstain_tokens:,.0f} tokens</div>
+                            <div style="font-size: 0.875rem; color: #8892b0;">{abstain_pct:.1f}% of votes</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+                    
+                    # ===== 4. PARTICIPATION INSIGHTS =====
+                    st.markdown("### 📈 Participation Insights")
+                    
+                    insight_col1, insight_col2 = st.columns([1, 2])
+                    
+                    with insight_col1:
+                        # Circular progress for support ratio
+                        st.markdown(f"""
+                        <div style="text-align: center;">
+                            <div class="progress-circle" style="--progress: {support_ratio};">
+                                <span class="progress-value">{support_ratio:.0f}%</span>
+                            </div>
+                            <div style="color: #a8b2d1; font-size: 0.875rem; margin-top: 0.5rem;">Support Ratio</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with insight_col2:
+                        # Key insights text
+                        if aye_pct > nay_pct:
+                            voting_tendency = f"This voter tends to support proposals ({aye_pct:.0f}% Aye votes)"
+                            tendency_color = "#10B981"
+                            tendency_icon = "✅"
+                        elif nay_pct > aye_pct:
+                            voting_tendency = f"This voter tends to oppose proposals ({nay_pct:.0f}% Nay votes)"
+                            tendency_color = "#EF4444"
+                            tendency_icon = "❌"
+                        else:
+                            voting_tendency = "This voter has a balanced voting pattern"
+                            tendency_color = "#667eea"
+                            tendency_icon = "⚖️"
+                        
+                        avg_tokens_per_vote = total_tokens / total_votes if total_votes > 0 else 0
+                        
+                        st.markdown(f"""
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px; border-left: 4px solid {tendency_color};">
+                            <h4 style="color: {tendency_color}; margin-bottom: 1rem;">{tendency_icon} Voting Pattern</h4>
+                            <p style="color: #ccd6f6; font-size: 1.1rem; margin-bottom: 1rem;">{voting_tendency}</p>
+                            <ul style="color: #a8b2d1; line-height: 1.8;">
+                                <li><strong>Average tokens per vote:</strong> {avg_tokens_per_vote:,.0f} tokens</li>
+                                <li><strong>Activity status:</strong> {"🟢 Active participant" if is_active else "⚫ Inactive"}</li>
+                                <li><strong>Voter type:</strong> {voter_type}</li>
+                                {"<li><strong>Delegation:</strong> Delegates to " + delegates + "</li>" if delegates else ""}
+                            </ul>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # ===== 5. RAW DATA (EXPANDABLE) =====
+                    with st.expander("📋 View All Raw Voter Data"):
+                        st.dataframe(voter_info, use_container_width=True)
+                
                 else:
                     st.warning("No governance data found for this address.")
             
