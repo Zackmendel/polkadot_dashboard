@@ -2,6 +2,31 @@
 
 A comprehensive multi-chain account and governance analytics platform for the Polkadot ecosystem.
 
+---
+
+## 📦 Available Versions
+
+This repository contains **two versions** of Polka Guardian:
+
+### 🐍 **Version 1: Streamlit Application** (This README)
+- **Location:** Root directory
+- **Tech:** Python + Streamlit
+- **Best For:** Quick prototyping, internal tools
+- **Status:** ✅ Fully functional
+
+### ⚛️ **Version 2: Next.js Web Application** (NEW!)
+- **Location:** [`polka_guardian_vercel/`](./polka_guardian_vercel/)
+- **Tech:** Next.js + TypeScript + Tailwind CSS
+- **Best For:** Production deployments, public-facing apps
+- **Status:** ✅ Production-ready
+- **Documentation:** See [`polka_guardian_vercel/README.md`](./polka_guardian_vercel/README.md)
+
+**📖 Compare Versions:** See [POLKA_GUARDIAN_VERSIONS.md](./POLKA_GUARDIAN_VERSIONS.md)
+
+---
+
+## Streamlit Version (Below)
+
 ## Features
 
 ### 🌍 Ecosystem Overview
