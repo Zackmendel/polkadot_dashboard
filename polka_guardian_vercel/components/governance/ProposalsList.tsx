@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { DataTable } from '@/components/ui/data-table'
 import { Search } from 'lucide-react'
 import axios from 'axios'
 
@@ -38,9 +39,9 @@ export function ProposalsList() {
         p.proposer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.track?.toLowerCase().includes(searchTerm.toLowerCase())
       )
-      setFilteredProposals(filtered.slice(0, 20))
+      setFilteredProposals(filtered)
     } else {
-      setFilteredProposals(proposals.slice(0, 20))
+      setFilteredProposals(proposals)
     }
   }, [searchTerm, proposals])
 
@@ -71,64 +72,83 @@ export function ProposalsList() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {filteredProposals.map((proposal, index) => (
-            <div key={index} className="glass-card p-4 hover:border-primary transition-colors">
-              <div className="space-y-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-base">
-                      #{proposal.referendumIndex} - {proposal.title || 'Untitled Proposal'}
-                    </h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Track: <span className="text-primary">{proposal.track || 'N/A'}</span>
-                    </p>
-                  </div>
-                  <div className="text-right ml-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      proposal.status === 'Confirmed' 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : proposal.status === 'Rejected'
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {proposal.status || 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-
-                {proposal.proposer && (
-                  <div className="text-xs text-muted-foreground">
-                    Proposer: <span className="mono">{proposal.proposer.slice(0, 12)}...</span>
-                  </div>
-                )}
-
-                {proposal.content && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {proposal.content}
-                  </p>
-                )}
-
-                <div className="flex gap-4 text-xs text-muted-foreground pt-2 border-t border-border">
-                  {proposal.ayeVotes && (
-                    <span>👍 Aye: {proposal.ayeVotes}</span>
-                  )}
-                  {proposal.nayVotes && (
-                    <span>👎 Nay: {proposal.nayVotes}</span>
-                  )}
-                  {proposal.created_at && (
-                    <span>📅 {new Date(proposal.created_at).toLocaleDateString()}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredProposals.length === 0 && (
+        {filteredProposals.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
             No proposals found matching your search
           </p>
+        ) : (
+          <DataTable
+            data={filteredProposals}
+            columns={[
+              {
+                key: 'referendumIndex',
+                label: 'Proposal ID',
+                render: (value) => <span className="mono font-semibold">#{value}</span>,
+              },
+              {
+                key: 'title',
+                label: 'Title/Description',
+                render: (value, row) => (
+                  <div className="max-w-xs">
+                    <p className="font-semibold text-sm line-clamp-2">{value || 'Untitled Proposal'}</p>
+                    {row.content && (
+                      <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                        {row.content}
+                      </p>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (value) => {
+                  const statusLower = String(value).toLowerCase()
+                  const isConfirmed = statusLower.includes('confirmed') || statusLower.includes('passed')
+                  const isRejected = statusLower.includes('rejected') || statusLower.includes('failed')
+                  return (
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                      isConfirmed
+                        ? 'bg-green-500/20 text-green-400' 
+                        : isRejected
+                        ? 'bg-red-500/20 text-red-400'
+                        : 'bg-blue-500/20 text-blue-400'
+                    }`}>
+                      {value || 'Unknown'}
+                    </span>
+                  )
+                },
+              },
+              {
+                key: 'ayeVotes',
+                label: 'Aye Votes',
+                render: (value) => <span className="text-green-400">{value || 0}</span>,
+              },
+              {
+                key: 'nayVotes',
+                label: 'Nay Votes',
+                render: (value) => <span className="text-red-400">{value || 0}</span>,
+              },
+              {
+                key: 'abstainVotes',
+                label: 'Abstain',
+                render: (value) => <span className="text-blue-400">{value || 0}</span>,
+              },
+              {
+                key: 'track',
+                label: 'Track',
+                render: (value) => (
+                  <span className="text-xs text-primary">{value || 'N/A'}</span>
+                ),
+              },
+              {
+                key: 'created_at',
+                label: 'Created Date',
+                render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
+              },
+            ]}
+            defaultItemsPerPage={10}
+          />
         )}
       </CardContent>
     </Card>

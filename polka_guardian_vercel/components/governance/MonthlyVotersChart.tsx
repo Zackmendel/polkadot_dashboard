@@ -24,20 +24,22 @@ export function MonthlyVotersChart() {
           const rawData = votersRes.data.data
           const chartData: any[] = []
           
-          rawData.forEach((row: any) => {
-            chartData.push({
-              month: row.month,
-              Type: 'Delegated',
-              Voters: row.delegated_voters,
-              'Voting Power': row.delegated_voting_power,
+          rawData
+            .filter((row: any) => row.month)
+            .forEach((row: any) => {
+              chartData.push({
+                month: row.month,
+                Type: 'Delegated',
+                Voters: row.delegated_voters || 0,
+                'Voting Power': row.delegated_voting_power || 0,
+              })
+              chartData.push({
+                month: row.month,
+                Type: 'Direct',
+                Voters: row.direct_voters || 0,
+                'Voting Power': row.direct_voting_power || 0,
+              })
             })
-            chartData.push({
-              month: row.month,
-              Type: 'Direct',
-              Voters: row.direct_voters,
-              'Voting Power': row.direct_voting_power,
-            })
-          })
           
           setData(chartData)
         }
@@ -55,7 +57,13 @@ export function MonthlyVotersChart() {
     fetchData()
   }, [])
 
-  const COLORS = ['#10B981', '#EF4444', '#F59E0B', '#8B5CF6', '#667eea']
+  const getColorForStatus = (status: string) => {
+    const statusLower = status.toLowerCase()
+    if (statusLower.includes('pass') || statusLower.includes('confirm')) return '#10B981'
+    if (statusLower.includes('fail') || statusLower.includes('reject')) return '#EF4444'
+    if (statusLower.includes('ongoing') || statusLower.includes('active')) return '#3B82F6'
+    return '#8B5CF6'
+  }
 
   if (loading) {
     return (
@@ -109,31 +117,45 @@ export function MonthlyVotersChart() {
 
           <div>
             <h3 className="text-lg font-semibold mb-4">🗳️ Referenda Outcomes</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <PieChart>
-                <Pie
-                  data={outcomeData}
-                  dataKey="count"
-                  nameKey="status"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  label={(entry) => `${entry.status}: ${entry.count}`}
-                  labelLine={false}
-                >
-                  {outcomeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1a1a2e', 
-                    border: '1px solid #667eea',
-                    borderRadius: '8px'
-                  }} 
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {outcomeData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <PieChart>
+                  <Pie
+                    data={outcomeData}
+                    dataKey="count"
+                    nameKey="status"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    innerRadius={60}
+                    paddingAngle={2}
+                    label={(entry) => `${entry.count}`}
+                    labelLine={true}
+                  >
+                    {outcomeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getColorForStatus(entry.status)} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1a1a2e', 
+                      border: '1px solid #667eea',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: any, name: any) => [`Count: ${value}`, name]}
+                  />
+                  <Legend 
+                    verticalAlign="bottom"
+                    height={36}
+                    formatter={(value, entry: any) => `${value} (${entry.payload.count})`}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                No referenda outcome data available
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

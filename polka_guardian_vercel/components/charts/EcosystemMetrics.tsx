@@ -9,7 +9,7 @@ import axios from 'axios'
 
 export function EcosystemMetrics() {
   const [data, setData] = useState<any[]>([])
-  const [selectedChain, setSelectedChain] = useState('All Chains')
+  const [selectedChain, setSelectedChain] = useState('Polkadot')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,10 +18,13 @@ export function EcosystemMetrics() {
         const response = await axios.get('/api/governance?type=ecosystem_metrics')
         if (response.data.success) {
           const rawData = response.data.data
-          const processed = rawData.map((row: any) => ({
-            ...row,
-            date: new Date(row.block_time).toLocaleDateString(),
-          }))
+          const processed = rawData
+            .filter((row: any) => row.block_time && row.chain)
+            .map((row: any) => ({
+              ...row,
+              date: new Date(row.block_time).toLocaleDateString(),
+              timestamp: new Date(row.block_time).getTime(),
+            }))
           setData(processed)
         }
       } catch (error) {
@@ -34,9 +37,12 @@ export function EcosystemMetrics() {
     fetchData()
   }, [])
 
-  const filteredData = selectedChain === 'All Chains' 
+  const filteredData = (selectedChain === 'All Chains' 
     ? data 
-    : data.filter((d) => d.chain === selectedChain)
+    : data.filter((d) => d.chain === selectedChain))
+    .filter((d) => {
+      return d.transfers_cnt || d.active_cnt || d.events_cnt || d.extrinsics_cnt
+    })
 
   const chains = ['All Chains', ...Array.from(new Set(data.map((d) => d.chain))).sort()]
 

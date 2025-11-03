@@ -94,7 +94,7 @@ export function ChatSidebar() {
       <div className="flex-1 overflow-y-auto p-4 space-y-4 chat-container">
         {chatMessages.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
-            <p className="text-sm">👋 Hi! I'm your AI assistant.</p>
+            <p className="text-sm">👋 Hi! I&apos;m your AI assistant.</p>
             <p className="text-xs mt-2">Ask me anything about {currentView === 'wallet' ? 'your wallet' : 'governance'}!</p>
           </div>
         )}

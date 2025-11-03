@@ -57,7 +57,7 @@ export default function Home() {
                   
                   <div className="glass-card p-6 text-center">
                     <p className="text-muted-foreground">
-                      💡 Enter a wallet address above and click "Fetch Account Data" to explore wallet-specific analytics.
+                      💡 Enter a wallet address above and click &quot;Fetch Account Data&quot; to explore wallet-specific analytics.
                     </p>
                   </div>
                 </div>
