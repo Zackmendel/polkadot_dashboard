@@ -15,10 +15,13 @@ export function TreasuryFlow() {
         const response = await axios.get('/api/governance?type=treasury_flow')
         if (response.data.success) {
           const rawData = response.data.data
-          const processed = rawData.map((row: any) => ({
-            ...row,
-            date: new Date(row.block_time).toLocaleDateString(),
-          }))
+          const processed = rawData
+            .filter((row: any) => row.block_time)
+            .map((row: any) => ({
+              ...row,
+              date: new Date(row.block_time).toLocaleDateString(),
+              timestamp: new Date(row.block_time).getTime(),
+            }))
           setData(processed)
         }
       } catch (error) {
