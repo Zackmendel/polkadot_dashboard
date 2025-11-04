@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { DataTable } from '@/components/ui/data-table'
 import { Search } from 'lucide-react'
 import axios from 'axios'
@@ -18,9 +19,22 @@ export function ProposalsList() {
       try {
         const response = await axios.get('/api/governance?type=proposals')
         if (response.data.success) {
-          const data = response.data.data
-          setProposals(data)
-          setFilteredProposals(data.slice(0, 20))
+          const rawData = response.data.data
+          
+          const parsedProposals = rawData.map((row: any) => ({
+            id: row.referenda_id,
+            title: row.title || `Referendum #${row.referenda_id}`,
+            chain: row.chain || 'Unknown',
+            origin: row.origin || 'N/A',
+            proposer: row.proposed_by_name || row.proposed_by || 'Unknown',
+            status: row.status || 'Unknown',
+            startTime: row.start_time,
+            endTime: row.end_time,
+            referendaUrl: row.referenda_url,
+          }))
+          
+          setProposals(parsedProposals)
+          setFilteredProposals(parsedProposals.slice(0, 20))
         }
       } catch (error) {
         console.error('Error loading proposals:', error)
@@ -37,11 +51,12 @@ export function ProposalsList() {
       const filtered = proposals.filter((p) =>
         p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.proposer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.track?.toLowerCase().includes(searchTerm.toLowerCase())
+        p.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.chain?.toLowerCase().includes(searchTerm.toLowerCase())
       )
       setFilteredProposals(filtered)
     } else {
-      setFilteredProposals(proposals)
+      setFilteredProposals(proposals.slice(0, 20))
     }
   }, [searchTerm, proposals])
 
@@ -81,22 +96,27 @@ export function ProposalsList() {
             data={filteredProposals}
             columns={[
               {
-                key: 'referendumIndex',
-                label: 'Proposal ID',
+                key: 'id',
+                label: 'ID',
                 render: (value) => <span className="mono font-semibold">#{value}</span>,
               },
               {
                 key: 'title',
                 label: 'Title/Description',
                 render: (value, row) => (
-                  <div className="max-w-xs">
-                    <p className="font-semibold text-sm line-clamp-2">{value || 'Untitled Proposal'}</p>
-                    {row.content && (
-                      <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                        {row.content}
-                      </p>
-                    )}
+                  <div className="max-w-sm">
+                    <p className="font-semibold text-sm line-clamp-2">{value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {row.chain} · {row.origin}
+                    </p>
                   </div>
+                ),
+              },
+              {
+                key: 'proposer',
+                label: 'Proposer',
+                render: (value) => (
+                  <span className="text-xs text-muted-foreground">{value}</span>
                 ),
               },
               {
@@ -106,44 +126,17 @@ export function ProposalsList() {
                   const statusLower = String(value).toLowerCase()
                   const isConfirmed = statusLower.includes('confirmed') || statusLower.includes('passed')
                   const isRejected = statusLower.includes('rejected') || statusLower.includes('failed')
+                  const variant = isConfirmed ? 'success' : isRejected ? 'error' : 'info'
                   return (
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                      isConfirmed
-                        ? 'bg-green-500/20 text-green-400' 
-                        : isRejected
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {value || 'Unknown'}
-                    </span>
+                    <Badge variant={variant}>
+                      {value}
+                    </Badge>
                   )
                 },
               },
               {
-                key: 'ayeVotes',
-                label: 'Aye Votes',
-                render: (value) => <span className="text-green-400">{value || 0}</span>,
-              },
-              {
-                key: 'nayVotes',
-                label: 'Nay Votes',
-                render: (value) => <span className="text-red-400">{value || 0}</span>,
-              },
-              {
-                key: 'abstainVotes',
-                label: 'Abstain',
-                render: (value) => <span className="text-blue-400">{value || 0}</span>,
-              },
-              {
-                key: 'track',
-                label: 'Track',
-                render: (value) => (
-                  <span className="text-xs text-primary">{value || 'N/A'}</span>
-                ),
-              },
-              {
-                key: 'created_at',
-                label: 'Created Date',
+                key: 'startTime',
+                label: 'Start Date',
                 render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
               },
             ]}
