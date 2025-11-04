@@ -6,6 +6,42 @@ import time
 from datetime import datetime
 import streamlit as st
 
+# ---- Rate Limiter for Subscan API ----
+# Subscan API has a rate limit of 5 calls per second
+
+class RateLimiter:
+    """
+    Rate limiter to ensure we don't exceed Subscan API's 5 calls per second limit.
+    """
+    def __init__(self, max_calls=5, time_window=1.0):
+        self.max_calls = max_calls
+        self.time_window = time_window  # in seconds
+        self.calls = []
+    
+    def wait_if_needed(self):
+        """
+        Wait if we've reached the rate limit.
+        """
+        now = time.time()
+        # Remove calls older than time_window
+        self.calls = [call_time for call_time in self.calls if now - call_time < self.time_window]
+        
+        if len(self.calls) >= self.max_calls:
+            # Calculate how long to wait
+            oldest_call = min(self.calls)
+            wait_time = self.time_window - (now - oldest_call) + 2.0  # Add 2 seconds buffer
+            if wait_time > 0:
+                print(f"Rate limit reached. Waiting {wait_time:.2f} seconds...")
+                time.sleep(wait_time)
+                # Clear the calls after waiting
+                self.calls = []
+        
+        # Record this call
+        self.calls.append(time.time())
+
+# Global rate limiter instance
+_rate_limiter = RateLimiter(max_calls=5, time_window=1.0)
+
 # ---- Subscan API Functions ----
 
 def get_token_metadata(chain_key, api_key):
@@ -13,6 +49,7 @@ def get_token_metadata(chain_key, api_key):
     Fetch token metadata (symbol, decimals, price) for a given chain.
     (Keeps your logic but adds support for 'native' detection if available.)
     """
+    _rate_limiter.wait_if_needed()
     url = f"https://{chain_key}.api.subscan.io/api/scan/token"
     headers = {
         "x-api-key": api_key,
@@ -46,6 +83,7 @@ def fetch_account_data(chain_key, account_key, api_key):
     """
     Fetch account data from Subscan API.
     """
+    _rate_limiter.wait_if_needed()
     url = f"https://{chain_key}.api.subscan.io/api/v2/scan/search"
     headers = {
         "x-api-key": api_key,
@@ -77,6 +115,7 @@ def fetch_all_transfers(chain_key, address, api_key, max_pages=None, delay=0.3):
     row = 100
 
     while True:
+        _rate_limiter.wait_if_needed()
         payload = {
             "address": address,
             "direction": "all",
@@ -145,6 +184,7 @@ def fetch_extrinsics(chain_key, address, api_key, page=0, row=50, order="asc", s
     Fetch extrinsics for a given address from Subscan API v2.
     (Keeps your existing logic and parameters)
     """
+    _rate_limiter.wait_if_needed()
     url = f"https://{chain_key}.api.subscan.io/api/v2/scan/extrinsics"
     headers = {
         "x-api-key": api_key,
@@ -193,6 +233,7 @@ def fetch_staking_history(chain_key, address, api_key):
     """
     Fetch staking reward/slash history for an address.
     """
+    _rate_limiter.wait_if_needed()
     url = f"https://{chain_key}.api.subscan.io/api/scan/staking_history"
     headers = {"x-api-key": api_key, "Content-Type": "application/json"}
     payload = json.dumps({"address": address, "page": 0, "row": 100})  # Fetch up to 100 records
@@ -212,6 +253,7 @@ def fetch_referenda_votes(chain_key, address, api_key):
     """
     Fetch governance referenda votes for an address.
     """
+    _rate_limiter.wait_if_needed()
     url = f"https://{chain_key}.api.subscan.io/api/scan/gov/votes"
     headers = {"x-api-key": api_key, "Content-Type": "application/json"}
     payload = json.dumps({"address": address, "page": 0, "row": 100})  # Fetch up to 100 records
@@ -232,6 +274,7 @@ def get_full_account_snapshot(chain_key, account_key, api_key):
     """
     Fetch and cache all Subscan data about an account in one place.
     This can later be passed to an OpenAI chatbot for reasoning.
+    Note: All API calls are rate-limited to max 5 calls/second.
     """
     snapshot = {}
 

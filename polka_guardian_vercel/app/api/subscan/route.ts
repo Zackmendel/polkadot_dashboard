@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
+import { subscanRateLimiter } from '@/lib/rateLimiter'
 
 interface TokenMetadata {
   symbol: string
@@ -8,52 +9,56 @@ interface TokenMetadata {
 }
 
 async function getTokenMetadata(chainKey: string, apiKey: string): Promise<TokenMetadata> {
-  try {
-    const url = `https://${chainKey}.api.subscan.io/api/scan/token`
-    const response = await axios.get(url, {
-      headers: {
-        'x-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-    })
+  return subscanRateLimiter.addToQueue(async () => {
+    try {
+      const url = `https://${chainKey}.api.subscan.io/api/scan/token`
+      const response = await axios.get(url, {
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      })
 
-    if (response.data?.code === 0 && response.data?.data?.detail) {
-      // Look for native token first
-      const tokens = Object.values(response.data.data.detail) as any[]
-      const nativeToken = tokens.find((t: any) => t.is_native)
-      const token = nativeToken || tokens[0]
+      if (response.data?.code === 0 && response.data?.data?.detail) {
+        // Look for native token first
+        const tokens = Object.values(response.data.data.detail) as any[]
+        const nativeToken = tokens.find((t: any) => t.is_native)
+        const token = nativeToken || tokens[0]
 
-      return {
-        symbol: token.symbol,
-        decimals: parseInt(token.token_decimals),
-        price: parseFloat(token.price || '0'),
+        return {
+          symbol: token.symbol,
+          decimals: parseInt(token.token_decimals),
+          price: parseFloat(token.price || '0'),
+        }
       }
+    } catch (error) {
+      console.error('Error fetching token metadata:', error)
     }
-  } catch (error) {
-    console.error('Error fetching token metadata:', error)
-  }
 
-  return { symbol: 'N/A', decimals: 10, price: 0 }
+    return { symbol: 'N/A', decimals: 10, price: 0 }
+  })
 }
 
 async function fetchAccountData(chainKey: string, address: string, apiKey: string) {
-  const url = `https://${chainKey}.api.subscan.io/api/v2/scan/search`
-  const response = await axios.post(
-    url,
-    { key: address },
-    {
-      headers: {
-        'x-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
+  return subscanRateLimiter.addToQueue(async () => {
+    const url = `https://${chainKey}.api.subscan.io/api/v2/scan/search`
+    const response = await axios.post(
+      url,
+      { key: address },
+      {
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    if (response.data?.code !== 0) {
+      throw new Error(`Subscan API Error: ${response.data?.message}`)
     }
-  )
 
-  if (response.data?.code !== 0) {
-    throw new Error(`Subscan API Error: ${response.data?.message}`)
-  }
-
-  return response.data
+    return response.data
+  })
 }
 
 async function fetchTransfers(chainKey: string, address: string, apiKey: string, maxPages = 5) {
@@ -64,21 +69,24 @@ async function fetchTransfers(chainKey: string, address: string, apiKey: string,
 
   while (page < maxPages) {
     try {
-      const response = await axios.post(
-        url,
-        {
-          address,
-          direction: 'all',
-          row,
-          page,
-        },
-        {
-          headers: {
-            'x-api-key': apiKey,
-            'Content-Type': 'application/json',
+      // Wrap each API call in the rate limiter
+      const response = await subscanRateLimiter.addToQueue(async () => {
+        return axios.post(
+          url,
+          {
+            address,
+            direction: 'all',
+            row,
+            page,
           },
-        }
-      )
+          {
+            headers: {
+              'x-api-key': apiKey,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+      })
 
       if (response.data?.code !== 0) break
 
@@ -99,92 +107,98 @@ async function fetchTransfers(chainKey: string, address: string, apiKey: string,
 }
 
 async function fetchExtrinsics(chainKey: string, address: string, apiKey: string) {
-  const url = `https://${chainKey}.api.subscan.io/api/v2/scan/extrinsics`
-  
-  try {
-    const response = await axios.post(
-      url,
-      {
-        address,
-        order: 'desc',
-        page: 0,
-        row: 100,
-        success: true,
-      },
-      {
-        headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json',
+  return subscanRateLimiter.addToQueue(async () => {
+    const url = `https://${chainKey}.api.subscan.io/api/v2/scan/extrinsics`
+    
+    try {
+      const response = await axios.post(
+        url,
+        {
+          address,
+          order: 'desc',
+          page: 0,
+          row: 100,
+          success: true,
         },
+        {
+          headers: {
+            'x-api-key': apiKey,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      if (response.data?.code === 0) {
+        return response.data?.data?.extrinsics || []
       }
-    )
-
-    if (response.data?.code === 0) {
-      return response.data?.data?.extrinsics || []
+    } catch (error) {
+      console.error('Error fetching extrinsics:', error)
     }
-  } catch (error) {
-    console.error('Error fetching extrinsics:', error)
-  }
 
-  return []
+    return []
+  })
 }
 
 async function fetchStakingHistory(chainKey: string, address: string, apiKey: string) {
-  const url = `https://${chainKey}.api.subscan.io/api/scan/staking_history`
-  
-  try {
-    const response = await axios.post(
-      url,
-      {
-        address,
-        page: 0,
-        row: 100,
-      },
-      {
-        headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json',
+  return subscanRateLimiter.addToQueue(async () => {
+    const url = `https://${chainKey}.api.subscan.io/api/scan/staking_history`
+    
+    try {
+      const response = await axios.post(
+        url,
+        {
+          address,
+          page: 0,
+          row: 100,
         },
+        {
+          headers: {
+            'x-api-key': apiKey,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      if (response.data?.code === 0 && response.data?.data?.list) {
+        return response.data.data.list
       }
-    )
-
-    if (response.data?.code === 0 && response.data?.data?.list) {
-      return response.data.data.list
+    } catch (error) {
+      console.error('Error fetching staking history:', error)
     }
-  } catch (error) {
-    console.error('Error fetching staking history:', error)
-  }
 
-  return []
+    return []
+  })
 }
 
 async function fetchReferendaVotes(chainKey: string, address: string, apiKey: string) {
-  const url = `https://${chainKey}.api.subscan.io/api/scan/referenda/votes`
-  
-  try {
-    const response = await axios.post(
-      url,
-      {
-        address,
-        page: 0,
-        row: 100,
-      },
-      {
-        headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json',
+  return subscanRateLimiter.addToQueue(async () => {
+    const url = `https://${chainKey}.api.subscan.io/api/scan/referenda/votes`
+    
+    try {
+      const response = await axios.post(
+        url,
+        {
+          address,
+          page: 0,
+          row: 100,
         },
+        {
+          headers: {
+            'x-api-key': apiKey,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      if (response.data?.code === 0 && response.data?.data?.list) {
+        return response.data.data.list
       }
-    )
-
-    if (response.data?.code === 0 && response.data?.data?.list) {
-      return response.data.data.list
+    } catch (error) {
+      console.error('Error fetching referenda votes:', error)
     }
-  } catch (error) {
-    console.error('Error fetching referenda votes:', error)
-  }
 
-  return []
+    return []
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -209,6 +223,8 @@ export async function POST(request: NextRequest) {
     console.log(`Fetching data for ${address} on ${chainKey}...`)
 
     // Fetch all data in parallel
+    // Note: All API calls are rate-limited to max 5 calls/second by subscanRateLimiter
+    // The rate limiter will automatically queue and delay calls as needed
     const [accountData, tokenMetadata, transfers, extrinsics, staking, votes] = await Promise.all([
       fetchAccountData(chainKey, address, apiKey),
       getTokenMetadata(chainKey, apiKey),

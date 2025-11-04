@@ -35,8 +35,15 @@ export function WalletActivity() {
   // Calculate derived values
   const balanceUsd = balance * priceUsd
   const lockUsd = lock * priceUsd
-  const transferable = balance - lock
-  const transferableUsd = balanceUsd - lockUsd
+  
+  // Calculate transferable with safety check to prevent negative values
+  let transferable = balance - lock
+  // If balance is zero OR transferable is negative, set to zero
+  if (balance === 0 || transferable < 0) {
+    transferable = 0
+  }
+  
+  const transferableUsd = transferable * priceUsd
   const reservedUsd = reserved * priceUsd
 
   // Extract staking info from accountData
