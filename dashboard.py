@@ -565,8 +565,14 @@ with main_col:
             balance_usd = balance * price_usd
             lock = float(data_section.get("lock", 0))
             lock_usd = lock * price_usd
+            
+            # Calculate transferrable with safety check to prevent negative values
             transferrable = balance - lock
-            transferrable_usd = balance_usd - lock_usd
+            # If balance is zero OR transferrable is negative, set to zero
+            if balance == 0 or transferrable < 0:
+                transferrable = 0
+            
+            transferrable_usd = transferrable * price_usd
             reserved = float(data_section.get("reserved", 0)) / 10**10
             reserved_usd = reserved * price_usd
             
