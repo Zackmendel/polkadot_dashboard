@@ -22,9 +22,18 @@ A beautiful, modern Next.js web application for Polkadot & Substrate ecosystem a
 - **Governance Votes**: Referendum participation and voting records
 
 ### 🗳️ Governance Monitor
+- **Voter Lookup**: Search any wallet address to view detailed governance participation
+  - Voter profile with identity and status
+  - Voting statistics (total votes, tokens, support ratio)
+  - Vote distribution visualization (Aye/Nay/Abstain)
+  - Participation insights and voting patterns
 - **Monthly Voters & Voting Power**: Track voter participation trends (Delegated vs Direct)
 - **Referenda Outcomes**: Visual breakdown of proposal results
 - **Recent Proposals**: Searchable list of recent governance proposals with status
+- **Proposal Details**: Select and explore individual proposals
+  - Full proposal metadata and status
+  - External links (Dune Analytics, Polkassembly)
+  - AI-powered proposal summaries
 
 ### 🤖 AI Chatbot Assistant
 - **Context-Aware**: Switches between wallet and governance analysis modes
@@ -137,6 +146,8 @@ polka_guardian_vercel/
 │   │   ├── WalletInput.tsx
 │   │   └── WalletActivity.tsx
 │   └── governance/               # Governance components
+│       ├── VoterLookup.tsx
+│       ├── ProposalDetails.tsx
 │       ├── MonthlyVotersChart.tsx
 │       └── ProposalsList.tsx
 ├── lib/
@@ -291,6 +302,20 @@ This project is open source and available under the MIT License.
 - **Polkadot**: Blockchain ecosystem
 - **Vercel**: Hosting and deployment
 - **shadcn/ui**: Beautiful UI components
+
+## 📚 Documentation
+
+### Governance Features
+- **[Governance Features Documentation](GOVERNANCE_FEATURES.md)** - Complete feature guide
+- **[Voter Lookup Testing Guide](VOTER_LOOKUP_TESTING.md)** - Comprehensive testing checklist
+- **[Quick Start: Governance](QUICK_START_GOVERNANCE.md)** - Get started quickly
+- **[Implementation Summary](../GOVERNANCE_IMPLEMENTATION_SUMMARY.md)** - Technical details
+
+### Other Documentation
+- **[API Documentation](API_DOCUMENTATION.md)** - API endpoints and usage
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Production deployment steps
+- **[Testing Guide](TESTING_GUIDE.md)** - Testing procedures
+- **[Quick Start](QUICKSTART.md)** - General quick start guide
 
 ## 📞 Support
 

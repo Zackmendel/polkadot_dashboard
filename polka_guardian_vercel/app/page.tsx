@@ -8,11 +8,33 @@ import { EcosystemMetrics } from '@/components/charts/EcosystemMetrics'
 import { TreasuryFlow } from '@/components/charts/TreasuryFlow'
 import { MonthlyVotersChart } from '@/components/governance/MonthlyVotersChart'
 import { ProposalsList } from '@/components/governance/ProposalsList'
+import { VoterLookup } from '@/components/governance/VoterLookup'
+import { ProposalDetails } from '@/components/governance/ProposalDetails'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Globe, Wallet, Vote } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 
 export default function Home() {
   const { currentView, setCurrentView } = useStore()
+  const [proposals, setProposals] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchProposals = async () => {
+      try {
+        const response = await axios.get('/api/governance?type=proposals')
+        if (response.data.success) {
+          setProposals(response.data.data)
+        }
+      } catch (error) {
+        console.error('Error loading proposals for details:', error)
+      }
+    }
+
+    if (currentView === 'governance') {
+      fetchProposals()
+    }
+  }, [currentView])
 
   return (
     <main className="min-h-screen p-4 md:p-8">
@@ -68,8 +90,10 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="governance" className="space-y-6 mt-6">
+                <VoterLookup />
                 <MonthlyVotersChart />
                 <ProposalsList />
+                {proposals.length > 0 && <ProposalDetails proposals={proposals} />}
               </TabsContent>
             </Tabs>
           </div>
