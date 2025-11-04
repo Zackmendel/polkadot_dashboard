@@ -44,7 +44,7 @@ export function WalletInput() {
       if (response.data.success) {
         setWalletAddress(address.trim())
         setWalletData({
-          accountData: response.data.data.accountData?.data?.account,
+          accountData: response.data.data.accountData,
           transfers: response.data.data.transfers,
           extrinsics: response.data.data.extrinsics,
           staking: response.data.data.staking,
