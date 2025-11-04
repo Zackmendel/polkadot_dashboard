@@ -59,25 +59,25 @@ export function TreasuryFlow() {
             <YAxis stroke="#888" />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: '#1a1a2e', 
-                border: '1px solid #667eea',
+                backgroundColor: '#171717', 
+                border: '1px solid rgba(230, 0, 122, 0.3)',
                 borderRadius: '8px'
               }} 
             />
             <Legend />
             <Bar dataKey="bounties" stackId="a" fill="#10B981" name="Bounties" />
             <Bar dataKey="burnt" stackId="a" fill="#EF4444" name="Burnt" />
-            <Bar dataKey="inflation" stackId="a" fill="#667eea" name="Inflation" />
-            <Bar dataKey="proposal" stackId="a" fill="#764ba2" name="Proposal" />
+            <Bar dataKey="inflation" stackId="a" fill="#FF2670" name="Inflation" />
+            <Bar dataKey="proposal" stackId="a" fill="#E6007A" name="Proposal" />
             <Bar dataKey="txn_fees" stackId="a" fill="#F59E0B" name="Transaction Fees" />
-            <Bar dataKey="txn_tips" stackId="a" fill="#8B5CF6" name="Transaction Tips" />
+            <Bar dataKey="txn_tips" stackId="a" fill="#FF5C96" name="Transaction Tips" />
             <Line 
               type="monotone" 
               dataKey="net_flow" 
-              stroke="#64ffda" 
+              stroke="#FF2670" 
               strokeWidth={3}
               name="Net Flow"
-              dot={{ r: 4 }}
+              dot={{ r: 4, fill: '#E6007A' }}
             />
           </ComposedChart>
         </ResponsiveContainer>

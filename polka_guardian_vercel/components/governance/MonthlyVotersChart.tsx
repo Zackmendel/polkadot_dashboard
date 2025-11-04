@@ -104,13 +104,13 @@ export function MonthlyVotersChart() {
                 <YAxis stroke="#888" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1a1a2e', 
-                    border: '1px solid #667eea',
+                    backgroundColor: '#171717', 
+                    border: '1px solid rgba(230, 0, 122, 0.3)',
                     borderRadius: '8px'
                   }} 
                 />
                 <Legend />
-                <Bar dataKey={metric} fill="#667eea" name={metric} />
+                <Bar dataKey={metric} fill="#FF2670" name={metric} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -138,8 +138,8 @@ export function MonthlyVotersChart() {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: '#1a1a2e', 
-                      border: '1px solid #667eea',
+                      backgroundColor: '#171717', 
+                      border: '1px solid rgba(230, 0, 122, 0.3)',
                       borderRadius: '8px'
                     }}
                     formatter={(value: any, name: any) => [`Count: ${value}`, name]}

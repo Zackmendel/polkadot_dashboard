@@ -97,7 +97,7 @@ export function EcosystemMetrics() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-card border border-primary/30 p-3 rounded-lg shadow-lg">
+        <div className="bg-card border border-polkadot-pink-600/30 p-3 rounded-lg shadow-lg">
           <p className="text-sm font-semibold mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p 
@@ -188,7 +188,7 @@ export function EcosystemMetrics() {
                 <YAxis stroke="#888" />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="transfers_cnt" fill="#667eea" name="Transfers" />
+                <Bar dataKey="transfers_cnt" fill="#FF2670" name="Transfers" />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -209,7 +209,7 @@ export function EcosystemMetrics() {
                 <YAxis stroke="#888" />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="active_cnt" fill="#764ba2" name="Active Accounts" />
+                <Bar dataKey="active_cnt" fill="#E6007A" name="Active Accounts" />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>

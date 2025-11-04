@@ -135,7 +135,7 @@ export function WalletActivity() {
             {/* Reserved */}
             <div className="metric-card">
               <p className="text-sm text-muted-foreground uppercase tracking-wide">Reserved</p>
-              <p className="text-2xl font-bold text-blue-400 mt-2">
+              <p className="text-2xl font-bold text-polkadot-pink-400 mt-2">
                 {reserved.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {symbol}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
