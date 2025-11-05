@@ -1,6 +1,7 @@
 'use client'
 
-import { useStore } from '@/lib/store'
+import { useEffect } from 'react'
+import { useStore, useChatStore } from '@/lib/store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DataTable } from '@/components/ui/data-table'
@@ -9,6 +10,48 @@ import { Wallet, ArrowLeftRight, FileText, Award, Vote, TrendingUp } from 'lucid
 
 export function WalletActivity() {
   const { walletData, walletAddress, selectedChain } = useStore()
+  const setWalletContext = useChatStore((state) => state.setWalletContext)
+
+  // Update chat context when wallet data changes
+  useEffect(() => {
+    if (walletData && walletAddress) {
+      const { accountData, transfers, extrinsics, staking, votes, tokenMetadata } = walletData
+      
+      // Create clean context for chatbot
+      const context = {
+        address: walletAddress,
+        chain: selectedChain,
+        balance: parseFloat(accountData?.balance || '0'),
+        transferable: Math.max(0, parseFloat(accountData?.balance || '0') - parseFloat(accountData?.lock || '0')),
+        locked: parseFloat(accountData?.lock || '0'),
+        reserved: parseFloat(accountData?.reserved || '0') / 1e10,
+        tokenPrice: tokenMetadata?.price || 0,
+        symbol: tokenMetadata?.symbol || 'DOT',
+        recentTransfers: (transfers || [])
+          .slice(0, 5)
+          .map(t => ({
+            hash: t.hash || '',
+            amount: parseFloat(t.amount || 0),
+            from: t.from || '',
+            to: t.to || '',
+            timestamp: t.block_timestamp || '',
+            success: t.success !== false,
+          })),
+        stakingStatus: accountData?.staking_info ? {
+          controller: accountData.staking_info.controller,
+          rewardAccount: accountData.staking_info.reward_account,
+          stash: accountData.stash,
+          isActive: true,
+          delegations: accountData.delegate?.conviction_delegate?.length || 0,
+        } : null,
+        totalTransfers: transfers?.length || 0,
+        totalExtrinsics: extrinsics?.length || 0,
+      }
+      
+      // Update chat context
+      setWalletContext(context)
+    }
+  }, [walletData, walletAddress, selectedChain, setWalletContext])
 
   if (!walletData || !walletAddress) {
     return (

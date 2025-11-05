@@ -19,6 +19,55 @@ export interface WalletData {
   }
 }
 
+export interface WalletContext {
+  address: string
+  chain: string
+  balance: number
+  transferable: number
+  locked: number
+  reserved: number
+  tokenPrice: number
+  symbol: string
+  recentTransfers: TransferSummary[]
+  stakingStatus: StakingSummary | null
+  totalTransfers: number
+  totalExtrinsics: number
+}
+
+export interface TransferSummary {
+  hash: string
+  amount: number
+  from: string
+  to: string
+  timestamp: string
+  success: boolean
+}
+
+export interface StakingSummary {
+  controller?: string
+  rewardAccount?: string
+  stash?: string
+  isActive: boolean
+  delegations: number
+}
+
+export interface GovernanceContext {
+  votersCount: number
+  proposalsCount: number
+  activeProposals: number
+  recentActivity: string
+}
+
+interface ChatStore {
+  chatMessages: ChatMessage[]
+  walletContext: WalletContext | null
+  governanceContext: GovernanceContext | null
+  addMessage: (message: ChatMessage) => void
+  setWalletContext: (context: WalletContext) => void
+  setGovernanceContext: (context: GovernanceContext) => void
+  clearChat: () => void
+}
+
 interface AppState {
   walletAddress: string
   selectedChain: string
@@ -60,4 +109,15 @@ export const useStore = create<AppState>((set) => ({
   })),
   clearChatMessages: () => set({ chatMessages: [] }),
   setIsLoading: (loading) => set({ isLoading: loading }),
+}))
+
+export const useChatStore = create<ChatStore>((set) => ({
+  chatMessages: [],
+  walletContext: null,
+  governanceContext: null,
+  addMessage: (message) => 
+    set((state) => ({ chatMessages: [...state.chatMessages, message] })),
+  setWalletContext: (context) => set({ walletContext: context }),
+  setGovernanceContext: (context) => set({ governanceContext: context }),
+  clearChat: () => set({ chatMessages: [], walletContext: null, governanceContext: null }),
 }))

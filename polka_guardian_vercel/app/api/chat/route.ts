@@ -114,7 +114,7 @@ function prepareDataContext(governanceData: any, query: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, context, contextType } = await request.json()
+    const { messages, context, contextType, walletContext, useAssistant } = await request.json()
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     }))
 
     const governanceData = await loadGovernanceData()
-    const walletContext = context ? cleanWalletDataForAI(JSON.parse(context)) : null
+    const legacyContext = context ? cleanWalletDataForAI(JSON.parse(context)) : null
     
     // Get the last user message to understand what data to prioritize
     const lastUserMessage = messages[messages.length - 1]?.content || ''
@@ -149,18 +149,41 @@ export async function POST(request: NextRequest) {
          You help users understand their wallet activity, transactions, staking, and governance participation.
          Analyze the provided wallet data and answer questions clearly and concisely.
          
-         Available Wallet Data:
+         Current Wallet Analysis:
          ${walletContext ? `
-         - Account Balance: ${walletContext.accountData?.balance || 'N/A'}
-         - Reserved: ${walletContext.accountData?.reserved || 'N/A'}
-         - Locked: ${walletContext.accountData?.lock || 'N/A'}
-         - Number of Transfers: ${walletContext.transfers?.length || 0}
-         - Number of Extrinsics: ${walletContext.extrinsics?.length || 0}
-         - Number of Staking Events: ${walletContext.staking?.length || 0}
-         - Number of Votes: ${walletContext.votes?.length || 0}
-         - Token Symbol: ${walletContext.tokenMetadata?.symbol || 'N/A'}
-         - Token Decimals: ${walletContext.tokenMetadata?.decimals || 'N/A'}
-         ` : 'No wallet data loaded yet.'}
+Address: ${walletContext.address}
+Chain: ${walletContext.chain}
+Balance: ${walletContext.balance.toFixed(2)} ${walletContext.symbol}
+Transferable: ${walletContext.transferable.toFixed(2)} ${walletContext.symbol}
+Locked: ${walletContext.locked.toFixed(2)} ${walletContext.symbol}
+Reserved: ${walletContext.reserved.toFixed(2)} ${walletContext.symbol}
+Token Price: ${walletContext.tokenPrice.toFixed(4)}
+
+Total Transactions: ${walletContext.totalTransfers}
+Total Extrinsics: ${walletContext.totalExtrinsics}
+
+${walletContext.recentTransfers.length > 0 ? `Recent Transfers (last 5):
+${walletContext.recentTransfers.map((t: any, i: number) => 
+  `${i+1}. ${t.amount.toFixed(2)} ${walletContext.symbol} from ${t.from.substring(0, 10)}... to ${t.to.substring(0, 10)}... (${t.timestamp})`
+).join('\n')}` : ''}
+
+${walletContext.stakingStatus ? `Staking Status:
+- Active: ${walletContext.stakingStatus.isActive ? 'Yes' : 'No'}
+- Controller: ${walletContext.stakingStatus.controller || 'N/A'}
+- Delegations: ${walletContext.stakingStatus.delegations}` : 'No staking activity'}
+
+Provide helpful, accurate answers based on this wallet data.` : `
+         ${legacyContext ? `
+         - Account Balance: ${legacyContext.accountData?.balance || 'N/A'}
+         - Reserved: ${legacyContext.accountData?.reserved || 'N/A'}
+         - Locked: ${legacyContext.accountData?.lock || 'N/A'}
+         - Number of Transfers: ${legacyContext.transfers?.length || 0}
+         - Number of Extrinsics: ${legacyContext.extrinsics?.length || 0}
+         - Number of Staking Events: ${legacyContext.staking?.length || 0}
+         - Number of Votes: ${legacyContext.votes?.length || 0}
+         - Token Symbol: ${legacyContext.tokenMetadata?.symbol || 'N/A'}
+         - Token Decimals: ${legacyContext.tokenMetadata?.decimals || 'N/A'}
+         ` : 'No wallet data loaded yet.'}`}
          
          Governance Data Overview:
          - Total Proposals: ${dataContext.totalProposals || 'N/A'}
