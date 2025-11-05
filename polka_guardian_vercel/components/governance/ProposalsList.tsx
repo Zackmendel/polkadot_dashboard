@@ -1,18 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { DataTable } from '@/components/ui/data-table'
 import { Search } from 'lucide-react'
 import axios from 'axios'
+import { sortProposalsByDate, parseProposalDate } from '@/lib/dataUtils'
 
 export function ProposalsList() {
   const [proposals, setProposals] = useState<any[]>([])
   const [filteredProposals, setFilteredProposals] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
+
+  // Sort proposals by date (most recent first)
+  const sortedProposals = useMemo(() => {
+    return sortProposalsByDate(proposals)
+  }, [proposals])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +54,7 @@ export function ProposalsList() {
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = proposals.filter((p) =>
+      const filtered = sortedProposals.filter((p) =>
         p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.proposer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,9 +62,9 @@ export function ProposalsList() {
       )
       setFilteredProposals(filtered)
     } else {
-      setFilteredProposals(proposals.slice(0, 20))
+      setFilteredProposals(sortedProposals.slice(0, 20))
     }
-  }, [searchTerm, proposals])
+  }, [searchTerm, sortedProposals])
 
   if (loading) {
     return (

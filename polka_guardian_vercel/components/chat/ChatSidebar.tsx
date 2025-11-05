@@ -46,13 +46,37 @@ export function ChatSidebar() {
     try {
       const contextType = currentView === 'wallet' ? 'wallet' : 'governance'
       const context = currentView === 'wallet' ? walletData : governanceData
+      
+      // Only send PROCESSED data, not raw
+      let processedContext = null
+      if (context) {
+        if (contextType === 'wallet') {
+          // Type guard for wallet data
+          const walletCtx = context as any
+          processedContext = {
+            accountData: walletCtx.accountData,
+            transfers: walletCtx.transfers?.slice(0, 10), // Only recent 10
+            extrinsics: walletCtx.extrinsics?.slice(0, 5), // Only recent 5
+            staking: walletCtx.staking,
+            votes: walletCtx.votes?.slice(0, 5), // Only recent 5
+            tokenMetadata: walletCtx.tokenMetadata,
+          }
+        } else {
+          // Type guard for governance data
+          const govCtx = context as any
+          processedContext = {
+            proposals: govCtx.proposals?.slice(0, 20), // Only recent 20
+            voters: null, // Don't send full voter list
+          }
+        }
+      }
 
       const response = await axios.post('/api/chat', {
         messages: [...chatMessages, userMessage].map(msg => ({
           role: msg.role,
           content: msg.content,
         })),
-        context: context ? JSON.stringify(context).slice(0, 4000) : null,
+        context: processedContext ? JSON.stringify(processedContext) : null,
         contextType,
       })
 
@@ -63,11 +87,17 @@ export function ChatSidebar() {
       }
 
       addChatMessage(assistantMessage)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error)
+      
+      // Show user-friendly error message
+      const errorMessage = error.response?.data?.error || 
+                          error.message || 
+                          'Sorry, I encountered an error. Please try again.'
+      
       addChatMessage({
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: errorMessage,
         timestamp: new Date(),
       })
     } finally {

@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 import { promises as fs } from 'fs'
 import path from 'path'
 import Papa from 'papaparse'
+import { sanitizeForJSON, sanitizeObject, summarizeDataForAI, cleanWalletDataForAI, cleanGovernanceDataForAI } from '@/lib/dataUtils'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -122,8 +123,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate input
+    if (!messages || !Array.isArray(messages)) {
+      return NextResponse.json(
+        { error: 'Invalid request: messages required' },
+        { status: 400 }
+      )
+    }
+
+    // SANITIZE USER MESSAGES
+    const cleanMessages = messages.map((msg: any) => ({
+      role: msg.role,
+      content: sanitizeForJSON(msg.content),
+    }))
+
     const governanceData = await loadGovernanceData()
-    const walletContext = context ? JSON.parse(context) : null
+    const walletContext = context ? cleanWalletDataForAI(JSON.parse(context)) : null
     
     // Get the last user message to understand what data to prioritize
     const lastUserMessage = messages[messages.length - 1]?.content || ''
@@ -171,30 +186,30 @@ export async function POST(request: NextRequest) {
          
          ${dataContext.activeProposals?.length > 0 ? `
          CURRENT/RECENT PROPOSALS (${dataContext.activeProposals.length} proposals):
-         ${JSON.stringify(dataContext.activeProposals, null, 2)}
+         ${JSON.stringify(sanitizeObject(dataContext.activeProposals), null, 2)}
          ` : ''}
          
          ${dataContext.voterSummary ? `
          TOP VOTERS BY VOTING POWER:
-         ${JSON.stringify(dataContext.voterSummary.topVoters, null, 2)}
+         ${JSON.stringify(sanitizeObject(dataContext.voterSummary.topVoters), null, 2)}
          
          RECENT VOTING ACTIVITY:
-         ${JSON.stringify(dataContext.voterSummary.recentActivity, null, 2)}
+         ${JSON.stringify(sanitizeObject(dataContext.voterSummary.recentActivity), null, 2)}
          ` : ''}
          
          ${dataContext.monthlyVoting ? `
          MONTHLY VOTING TRENDS (Last 12 months):
-         ${JSON.stringify(dataContext.monthlyVoting, null, 2)}
+         ${JSON.stringify(sanitizeObject(dataContext.monthlyVoting), null, 2)}
          ` : ''}
          
          ${dataContext.ecosystemMetrics ? `
          RECENT ECOSYSTEM METRICS:
-         ${JSON.stringify(dataContext.ecosystemMetrics.slice(0, 7), null, 2)}
+         ${JSON.stringify(sanitizeObject(dataContext.ecosystemMetrics.slice(0, 7)), null, 2)}
          ` : ''}
          
          ${dataContext.treasuryFlow ? `
          TREASURY FLOW DATA:
-         ${JSON.stringify(dataContext.treasuryFlow, null, 2)}
+         ${JSON.stringify(sanitizeObject(dataContext.treasuryFlow), null, 2)}
          ` : ''}
          
          Provide specific, data-driven insights based on this real data. When asked about "current" or "recent" 
@@ -204,7 +219,7 @@ export async function POST(request: NextRequest) {
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages,
+        ...cleanMessages,
       ],
       temperature: 0.7,
       max_tokens: 1500,
@@ -217,9 +232,19 @@ export async function POST(request: NextRequest) {
       message: assistantMessage 
     })
   } catch (error: any) {
-    console.error('OpenAI API error:', error)
+    console.error('Chat API error:', error)
+    
+    // Log detailed error for debugging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
     return NextResponse.json(
-      { error: error.message || 'Failed to generate response' },
+      { 
+        error: 'Failed to process request',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }
