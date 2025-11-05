@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import axios from 'axios'
 import { Sparkles, ExternalLink, Loader2 } from 'lucide-react'
+import { sanitizeForJSON, sortProposalsByDate } from '@/lib/dataUtils'
 
 interface Proposal {
   referenda_id: number
@@ -29,7 +30,12 @@ export function ProposalDetails({ proposals }: ProposalDetailsProps) {
   const [aiSummary, setAiSummary] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  const selectedProposal = proposals.find(
+  // Sort proposals by date (most recent first)
+  const sortedProposals = useMemo(() => {
+    return sortProposalsByDate(proposals)
+  }, [proposals])
+
+  const selectedProposal = sortedProposals.find(
     (p) => String(p.referenda_id) === selectedProposalId
   )
 
@@ -47,27 +53,37 @@ export function ProposalDetails({ proposals }: ProposalDetailsProps) {
     setAiSummary('')
 
     try {
+      // CLEAN proposal data before sending
+      const cleanProposal = {
+        id: selectedProposal.referenda_id,
+        title: sanitizeForJSON(selectedProposal.title || ''),
+        description: sanitizeForJSON(selectedProposal.title || '').substring(0, 1000), // Limit length
+        status: selectedProposal.status,
+        chain: selectedProposal.chain,
+        origin: selectedProposal.origin,
+        proposer: sanitizeForJSON(selectedProposal.proposed_by_name || selectedProposal.proposed_by || ''),
+        startTime: selectedProposal.start_time,
+        endTime: selectedProposal.end_time,
+      }
+
       const response = await axios.post('/api/chat', {
         messages: [
           {
             role: 'user',
-            content: `Please provide a concise summary of this Polkadot/Kusama governance proposal:
+            content: `Summarize this Polkadot governance proposal:
 
-Chain: ${selectedProposal.chain}
-Referendum ID: ${selectedProposal.referenda_id}
-Status: ${selectedProposal.status}
-Origin/Track: ${selectedProposal.origin}
-Proposer: ${selectedProposal.proposed_by_name || selectedProposal.proposed_by || 'Unknown'}
-${selectedProposal.title ? `Title: ${selectedProposal.title}` : ''}
-Start Time: ${selectedProposal.start_time || 'N/A'}
-End Time: ${selectedProposal.end_time || 'N/A'}
+Referendum ID: ${cleanProposal.id}
+Chain: ${cleanProposal.chain}
+Status: ${cleanProposal.status}
+Track: ${cleanProposal.origin}
+Proposer: ${cleanProposal.proposer}
 
-Please provide:
-1. A brief summary of what this proposal is about (if title/context available)
-2. The voting outcome and what it means
-3. Key insights for voters
+Title: ${cleanProposal.title}
 
-Keep the response concise and informative.`
+Start Time: ${cleanProposal.startTime || 'N/A'}
+End Time: ${cleanProposal.endTime || 'N/A'}
+
+Provide a concise 2-3 sentence summary of this proposal and its outcome.`
           }
         ],
         context: 'governance'
@@ -76,9 +92,12 @@ Keep the response concise and informative.`
       if (response.data.message) {
         setAiSummary(response.data.message)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating AI summary:', error)
-      setAiSummary('Failed to generate AI summary. Please try again.')
+      const errorMessage = error.response?.data?.error || 
+                          error.message || 
+                          'Failed to generate AI summary. Please try again.'
+      setAiSummary(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -127,9 +146,9 @@ Keep the response concise and informative.`
             className="w-full bg-background border border-input rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-polkadot-pink-500"
           >
             <option value="">Choose a proposal...</option>
-            {proposals.slice(0, 50).map((proposal) => (
+            {sortedProposals.slice(0, 50).map((proposal) => (
               <option key={proposal.referenda_id} value={String(proposal.referenda_id)}>
-                {proposal.chain} · {proposal.origin} · ID {proposal.referenda_id} · {proposal.status}
+                {proposal.chain} · {proposal.origin} · ID {proposal.referenda_id} · {proposal.status} · {proposal.start_time ? new Date(proposal.start_time).toLocaleDateString() : 'N/A'}
               </option>
             ))}
           </select>
