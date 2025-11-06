@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import axios from 'axios'
 import { Sparkles, ExternalLink, Loader2 } from 'lucide-react'
 import { sanitizeForJSON, sortProposalsByDate } from '@/lib/dataUtils'
+import { ProposalSummary } from './ProposalSummary'
 
 interface Proposal {
   referenda_id: number
@@ -226,39 +227,16 @@ Provide a concise 2-3 sentence summary of this proposal and its outcome.`
               )}
             </div>
 
-            <Button
-              onClick={generateAISummary}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#FF2670] to-[#E6007A] hover:brightness-110"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generating Summary...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Summarize with AI
-                </>
-              )}
-            </Button>
-
-            {aiSummary && (
-              <div className="p-6 glass-card border-polkadot-pink-500/30">
-                <h4 className="text-lg font-bold gradient-text mb-3 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  AI-Powered Analysis
-                </h4>
-                <div className="prose prose-invert prose-sm max-w-none">
-                  {aiSummary.split('\n').map((paragraph, idx) => (
-                    <p key={idx} className="mb-2 text-muted-foreground">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
+            <ProposalSummary 
+              proposal={{
+                id: String(selectedProposal.referenda_id),
+                chain: selectedProposal.chain,
+                status: selectedProposal.status,
+                track: selectedProposal.origin,
+                title: selectedProposal.title,
+                description: selectedProposal.title,
+              }}
+            />
           </div>
         )}
 

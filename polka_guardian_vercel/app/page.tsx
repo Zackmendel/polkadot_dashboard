@@ -3,7 +3,7 @@
 import { useStore } from '@/lib/store'
 import { WalletInput } from '@/components/wallet/WalletInput'
 import { WalletActivity } from '@/components/wallet/WalletActivity'
-import { ChatSidebar } from '@/components/chat/ChatSidebar'
+import { SmartChat } from '@/components/chat/SmartChat'
 import { EcosystemMetrics } from '@/components/charts/EcosystemMetrics'
 import { TreasuryFlow } from '@/components/charts/TreasuryFlow'
 import { MonthlyVotersChart } from '@/components/governance/MonthlyVotersChart'
@@ -99,7 +99,7 @@ export default function Home() {
           </div>
 
           <div className="xl:sticky xl:top-4 h-fit">
-            <ChatSidebar />
+            <SmartChat />
           </div>
         </div>
 

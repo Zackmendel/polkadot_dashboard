@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useStore } from '@/lib/store'
+import { useStore, useChatStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -21,6 +21,14 @@ export function ChatSidebar() {
     governanceData, 
     currentView 
   } = useStore()
+  
+  const { 
+    chatMessages: contextMessages,
+    walletContext,
+    governanceContext,
+    addMessage,
+    clearChat
+  } = useChatStore()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -40,6 +48,7 @@ export function ChatSidebar() {
     }
 
     addChatMessage(userMessage)
+    addMessage(userMessage)
     setInput('')
     setIsLoading(true)
 
@@ -78,6 +87,8 @@ export function ChatSidebar() {
         })),
         context: processedContext ? JSON.stringify(processedContext) : null,
         contextType,
+        walletContext: contextType === 'wallet' ? walletContext : null,
+        useAssistant: false, // Use standard chat for wallet queries
       })
 
       const assistantMessage = {
@@ -87,6 +98,7 @@ export function ChatSidebar() {
       }
 
       addChatMessage(assistantMessage)
+      addMessage(assistantMessage)
     } catch (error: any) {
       console.error('Chat error:', error)
       
@@ -95,11 +107,14 @@ export function ChatSidebar() {
                           error.message || 
                           'Sorry, I encountered an error. Please try again.'
       
-      addChatMessage({
-        role: 'assistant',
+      const errorAssistantMessage = {
+        role: 'assistant' as const,
         content: errorMessage,
         timestamp: new Date(),
-      })
+      }
+      
+      addChatMessage(errorAssistantMessage)
+      addMessage(errorAssistantMessage)
     } finally {
       setIsLoading(false)
     }
