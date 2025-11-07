@@ -189,16 +189,20 @@ polka_guardian_vercel/
 
 The `setup-assistant` script:
 1. Uploads governance CSV files from `public/data/` to OpenAI
-2. Creates a vector store for file search
+2. Creates a vector store for efficient file search
 3. Creates an assistant with file_search tool enabled
-4. Saves assistant ID to `.env.local`
+4. Attaches vector store to the assistant
+5. Saves assistant ID to `.env.local`
 
 Files uploaded:
 - `polkadot_voters.csv` - Voter data and history
 - `proposals.csv` - All governance proposals
 - `polkadot_ecosystem_metrics_raw_data.csv` - Network statistics
+- `monthly_voters_voting_power_by_type.csv` - Monthly voter activity
+- `polkadot_treasury_flow.csv` - Treasury funding data
+- `polkadot_number_of_referenda_by_outcome_opengov.csv` - Referenda outcomes
 
-The assistant uses GPT-4 Turbo with file search to answer governance questions.
+The assistant uses GPT-4 Turbo with file_search and vector stores to answer governance questions efficiently.
 
 ## Cost Considerations
 
