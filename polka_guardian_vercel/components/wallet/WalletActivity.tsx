@@ -50,6 +50,8 @@ export function WalletActivity() {
       
       // Update chat context
       setWalletContext(context)
+    } else {
+      setWalletContext(null)
     }
   }, [walletData, walletAddress, selectedChain, setWalletContext])
 

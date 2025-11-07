@@ -3,7 +3,7 @@ import { create } from 'zustand'
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-  timestamp: Date
+  timestamp?: string
 }
 
 export interface WalletData {
@@ -58,15 +58,22 @@ export interface GovernanceContext {
   recentActivity: string
 }
 
-interface ChatStore {
-  chatMessages: ChatMessage[]
-  walletContext: WalletContext | null
-  governanceContext: GovernanceContext | null
-  addMessage: (message: ChatMessage) => void
-  setWalletContext: (context: WalletContext) => void
-  setGovernanceContext: (context: GovernanceContext) => void
-  clearChat: () => void
+export interface ChatSession {
+  messages: ChatMessage[]
+  threadId: string | null
+  createdAt: number
 }
+
+const createEmptyChat = (): ChatSession => ({
+  messages: [],
+  threadId: null,
+  createdAt: Date.now(),
+})
+
+const withTimestamp = (message: ChatMessage): ChatMessage => ({
+  ...message,
+  timestamp: message.timestamp ?? new Date().toISOString(),
+})
 
 interface AppState {
   walletAddress: string
@@ -77,17 +84,35 @@ interface AppState {
     voters?: any[]
     proposals?: any[]
   }
-  chatMessages: ChatMessage[]
   isLoading: boolean
-  
+
   setWalletAddress: (address: string) => void
   setSelectedChain: (chain: string) => void
   setCurrentView: (view: 'ecosystem' | 'wallet' | 'governance') => void
   setWalletData: (data: WalletData) => void
   setGovernanceData: (data: any) => void
-  addChatMessage: (message: ChatMessage) => void
-  clearChatMessages: () => void
   setIsLoading: (loading: boolean) => void
+}
+
+interface ChatStore {
+  walletChat: ChatSession
+  walletContext: WalletContext | null
+  governanceChat: ChatSession
+  governanceContext: GovernanceContext | null
+  currentChatMode: 'wallet' | 'governance'
+
+  addWalletMessage: (message: ChatMessage) => void
+  setWalletThreadId: (threadId: string | null) => void
+  clearWalletChat: () => void
+  setWalletContext: (context: WalletContext | null) => void
+
+  addGovernanceMessage: (message: ChatMessage) => void
+  setGovernanceThreadId: (threadId: string | null) => void
+  clearGovernanceChat: () => void
+  setGovernanceContext: (context: GovernanceContext | null) => void
+
+  setChatMode: (mode: 'wallet' | 'governance') => void
+  getCurrentChat: () => ChatSession
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -96,7 +121,6 @@ export const useStore = create<AppState>((set) => ({
   currentView: 'ecosystem',
   walletData: null,
   governanceData: {},
-  chatMessages: [],
   isLoading: false,
 
   setWalletAddress: (address) => set({ walletAddress: address }),
@@ -104,20 +128,68 @@ export const useStore = create<AppState>((set) => ({
   setCurrentView: (view) => set({ currentView: view }),
   setWalletData: (data) => set({ walletData: data }),
   setGovernanceData: (data) => set({ governanceData: data }),
-  addChatMessage: (message) => set((state) => ({ 
-    chatMessages: [...state.chatMessages, message] 
-  })),
-  clearChatMessages: () => set({ chatMessages: [] }),
   setIsLoading: (loading) => set({ isLoading: loading }),
 }))
 
-export const useChatStore = create<ChatStore>((set) => ({
-  chatMessages: [],
+export const useChatStore = create<ChatStore>((set, get) => ({
+  walletChat: createEmptyChat(),
   walletContext: null,
+  governanceChat: createEmptyChat(),
   governanceContext: null,
-  addMessage: (message) => 
-    set((state) => ({ chatMessages: [...state.chatMessages, message] })),
+  currentChatMode: 'wallet',
+
+  addWalletMessage: (message) =>
+    set((state) => ({
+      walletChat: {
+        ...state.walletChat,
+        messages: [...state.walletChat.messages, withTimestamp(message)],
+      },
+    })),
+
+  setWalletThreadId: (threadId) =>
+    set((state) => ({
+      walletChat: {
+        ...state.walletChat,
+        threadId,
+      },
+    })),
+
+  clearWalletChat: () =>
+    set({
+      walletChat: createEmptyChat(),
+    }),
+
   setWalletContext: (context) => set({ walletContext: context }),
+
+  addGovernanceMessage: (message) =>
+    set((state) => ({
+      governanceChat: {
+        ...state.governanceChat,
+        messages: [...state.governanceChat.messages, withTimestamp(message)],
+      },
+    })),
+
+  setGovernanceThreadId: (threadId) =>
+    set((state) => ({
+      governanceChat: {
+        ...state.governanceChat,
+        threadId,
+      },
+    })),
+
+  clearGovernanceChat: () =>
+    set({
+      governanceChat: createEmptyChat(),
+    }),
+
   setGovernanceContext: (context) => set({ governanceContext: context }),
-  clearChat: () => set({ chatMessages: [], walletContext: null, governanceContext: null }),
+
+  setChatMode: (mode) => set({ currentChatMode: mode }),
+
+  getCurrentChat: () => {
+    const state = get()
+    return state.currentChatMode === 'wallet'
+      ? state.walletChat
+      : state.governanceChat
+  },
 }))
