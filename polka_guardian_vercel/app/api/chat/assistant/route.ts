@@ -7,6 +7,23 @@ const openai = new OpenAI({
 
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID!
 
+const SYSTEM_INSTRUCTIONS = `You are an expert Polkadot and Kusama governance analyst with access to comprehensive governance datasets.
+
+IMPORTANT: You have access to CSV files with complete governance data:
+1. polkadot_voters.csv - Contains voter addresses, voting history, token amounts, voting patterns
+2. proposals.csv - Contains all referenda, proposal details, status, voting results
+3. polkadot_ecosystem_metrics_raw_data.csv - Contains network-wide governance statistics
+
+When users ask about:
+- Recent proposals: SEARCH the proposals.csv file and return actual proposals with IDs, titles, status, vote counts
+- Top voters: SEARCH the polkadot_voters.csv file and identify voters by voting frequency and token amounts
+- Voter details: SEARCH by address in polkadot_voters.csv to find voting history and patterns
+- Governance stats: SEARCH polkadot_ecosystem_metrics_raw_data.csv for network statistics
+
+ALWAYS cite specific data from the files you retrieve. Format your responses with clear structure and actual data values, not general guidance.
+
+If a user asks about proposals, voters, or governance data, ALWAYS use the file_search tool to search the attached files first before providing answers.`
+
 export async function POST(request: NextRequest) {
   try {
     const { message, threadId } = await request.json()
@@ -29,29 +46,38 @@ export async function POST(request: NextRequest) {
     
     // Create new thread if none exists
     if (!currentThreadId) {
-      const thread = await openai.beta.threads.create()
+      console.log('📝 Creating new thread...')
+      const thread = await openai.beta.threads.create({
+        metadata: {
+          createdAt: new Date().toISOString(),
+        }
+      })
       currentThreadId = thread.id
+      console.log('✅ Thread created:', currentThreadId)
     }
     
     // Add user message to thread
+    console.log('💬 Adding message to thread...')
     await openai.beta.threads.messages.create(currentThreadId, {
       role: 'user',
       content: message,
     })
     
-    // Run assistant
+    // Run assistant with enhanced instructions
+    console.log('🤖 Running assistant...')
     const run = await openai.beta.threads.runs.create(currentThreadId, {
       assistant_id: ASSISTANT_ID,
+      instructions: SYSTEM_INSTRUCTIONS, // Pass enhanced instructions each time
     })
     
-    // Poll for completion
+    // Poll for completion with extended timeout
     let runStatus = await openai.beta.threads.runs.retrieve(
       currentThreadId,
       run.id
     )
     
     let attempts = 0
-    const maxAttempts = 30 // 30 seconds max wait time
+    const maxAttempts = 60 // 60 seconds max wait time for file search
     
     while (runStatus.status !== 'completed' && attempts < maxAttempts) {
       if (runStatus.status === 'failed' || runStatus.status === 'cancelled' || runStatus.status === 'expired') {
@@ -70,10 +96,12 @@ export async function POST(request: NextRequest) {
     }
     
     if (runStatus.status !== 'completed') {
-      throw new Error('Run timed out')
+      console.error('❌ Run timed out after', attempts, 'seconds')
+      throw new Error('Assistant request timed out')
     }
     
     // Get messages
+    console.log('📨 Retrieving messages...')
     const messages = await openai.beta.threads.messages.list(currentThreadId)
     const lastMessage = messages.data[0]
     
@@ -87,6 +115,8 @@ export async function POST(request: NextRequest) {
       : responseContent.type === 'image_file'
       ? '[Image response]'
       : 'Unable to generate response'
+    
+    console.log('✅ Response generated')
     
     return NextResponse.json({
       message: responseText,

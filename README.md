@@ -1,218 +1,376 @@
-# Polkadot Analytics Dashboard
+# Polka Guardian - Governance & Wallet Analytics for Polkadot
 
-A comprehensive multi-chain account and governance analytics platform for the Polkadot ecosystem.
+> A beautiful, intuitive web application for monitoring Polkadot/Kusama wallet activity and exploring governance data with AI-powered insights.
 
----
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Polkadot](https://img.shields.io/badge/Polkadot-E6007A?logo=polkadot)](https://polkadot.network/)
 
-## 📦 Available Versions
+## 🎯 Project Overview
 
-This repository contains **two versions** of Polka Guardian:
+**Polka Guardian** brings Web2-style analytics and user experience to Polkadot governance. Built for the Polkadot Hackathon under the **"User-centric Apps"** theme, it prioritizes user interests through:
 
-### 🐍 **Version 1: Streamlit Application** (This README)
-- **Location:** Root directory
-- **Tech:** Python + Streamlit
-- **Best For:** Quick prototyping, internal tools
-- **Status:** ✅ Fully functional
+- **Intuitive Wallet Tracking**: Real-time balance, transfer, and staking monitoring
+- **Governance Transparency**: Search voters, explore proposals, understand voting patterns  
+- **AI-Powered Insights**: Chat with AI about your wallet activity and governance questions
+- **Beautiful Design**: Modern UI with Polkadot brand colors and smooth interactions
 
-### ⚛️ **Version 2: Next.js Web Application** (NEW!)
-- **Location:** [`polka_guardian_vercel/`](./polka_guardian_vercel/)
-- **Tech:** Next.js + TypeScript + Tailwind CSS
-- **Best For:** Production deployments, public-facing apps
-- **Status:** ✅ Production-ready
-- **Documentation:** See [`polka_guardian_vercel/README.md`](./polka_guardian_vercel/README.md)
+## 🌟 Features
 
-**📖 Compare Versions:** See [POLKA_GUARDIAN_VERSIONS.md](./POLKA_GUARDIAN_VERSIONS.md)
+### 💼 Wallet Analytics
+- **Account Overview**: Balance, transferable, locked, and reserved funds
+- **Transfer History**: Track all incoming and outgoing transfers
+- **Extrinsics**: Monitor on-chain activity and transactions
+- **Staking Details**: Controller, reward account, delegation information
+- **Multi-Chain**: Support for Polkadot and Kusama networks
 
----
+### 🗳️ Governance Monitor
+- **Voter Lookup**: Search any wallet address to see voting history
+- **Voting Statistics**: Total votes, tokens, support ratio, delegation info
+- **Vote Distribution**: Visual breakdown of Aye/Nay/Abstain patterns
+- **Proposal Explorer**: Browse and search all referenda
+- **AI Analysis**: Automatic summaries of proposal details and implications
 
-## Streamlit Version (Below)
+### 🤖 AI Assistant (Hybrid System)
+- **Wallet Queries**: Fast responses about your balance, transfers, staking
+- **Governance Queries**: Powerful retrieval through governance datasets
+- **Persistent Threads**: Conversation context maintained across messages
+- **Smart Routing**: Automatically suggests relevant assistant mode
 
-## Features
+## 🛠️ Technology Stack
 
-### 🌍 Ecosystem Overview
-- **Ecosystem Basic Metrics**: Daily transfers, active accounts, events, and extrinsics across chains
-- **Treasury Flow**: Polkadot treasury inflow/outflow visualization with stacked columns and net flow
-- View network-wide governance and ecosystem statistics
+### Frontend
+- **Framework**: Next.js 14 with React 19
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Custom CSS
+- **UI Components**: shadcn/ui
+- **State**: Zustand
+- **Charts**: Recharts
 
-### 💼 Wallet Activity
-- Multi-chain support (Polkadot, Kusama, Acala, Astar, Moonbeam, and more)
-- Account balance and financial metrics
-- Transfer history (sent, received, all)
-- Extrinsics and transaction history
-- Staking rewards and delegation info
-- Democracy participation and referenda votes
-- Comprehensive wallet analytics
+### Backend
+- **Runtime**: Node.js
+- **API**: Next.js API Routes
+- **Database**: CSV files (governance data)
+- **External APIs**: 
+  - Subscan API (wallet data)
+  - OpenAI API (AI assistant & summarization)
 
-### 🏛️ Governance Monitor
-- **Monthly Voters & Voting Power**: Track delegated vs direct voting patterns over time
-- **Referenda Outcomes**: Pie chart visualization of proposal statuses
-- **Voter Lookup**: Detailed governance participation analysis
-  - Voting statistics and patterns
-  - Vote distribution (Aye/Nay/Abstain)
-  - Support ratio and participation insights
-- **Recent Proposals**: Browse and analyze governance proposals
-- **AI-Powered Analysis**: Generate comprehensive proposal summaries and recommendations
+### DevOps
+- **Deployment**: Vercel
+- **Package Manager**: npm
+- **Version Control**: Git
 
-### 💬 AI Assistant
-- Context-aware AI chat powered by OpenAI
-- Wallet-focused insights for account analytics
-- Governance-focused insights for proposal analysis
-- Real-time data interpretation and recommendations
+## 📊 Data Sources & Attribution
 
-## Installation
+### Wallet Data
+- **Source**: [Subscan API](https://www.subscan.io/)
+- **Credit**: Data is fetched via Subscan's public API
+- **Data Includes**: Balances, transfers, extrinsics, staking information for Polkadot and Kusama chains
+- **License**: Public blockchain data accessed through Subscan's service
 
-1. Clone the repository:
+### Governance Data  
+- **Source**: [Dune Analytics](https://dune.com/substrate) & Substrate Governance Data
+- **Credit**: Governance metrics, voter data, and proposal information sourced from Polkadot's on-chain governance data
+- **Data Format**: CSV exports containing voters, proposals, and ecosystem metrics
+- **Attribution**: Data compiled from public blockchain governance records
+
+### AI & Analytics
+- **Source**: [OpenAI](https://openai.com/)
+- **Usage**: GPT-4 Turbo for chat and GPT-4 Turbo with file search for governance analysis
+- **Purpose**: AI-powered insights, proposal summaries, and Q&A
+
+**Important**: All data displayed in Polka Guardian is public blockchain data accessed through legitimate APIs and data platforms. We properly attribute all data sources and comply with their terms of service.
+
+## 🚀 Getting Started
+
+### Choose Your Version
+
+#### Option 1: Modern Web App (Recommended)
+
+**Best for**: Production deployment, modern UI, full feature set
+
 ```bash
-git clone <repository-url>
-cd <repository-name>
+cd polka_guardian_vercel
+npm install
+npm run setup-assistant
+npm run dev
 ```
+→ Visit http://localhost:3000
 
-2. Create and activate a virtual environment:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+**Features**: Beautiful UI, Vercel deployment, Hybrid AI system, Real-time data
 
-3. Install dependencies:
+➡️ **[View detailed setup guide](./polka_guardian_vercel/SETUP.md)**
+
+#### Option 2: Python Streamlit App
+
+**Best for**: Quick local development, data science workflows
+
 ```bash
+cd streamlit_polkaguardian
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+streamlit run dashboard.py
+```
+→ Visit http://localhost:8501
+
+**Features**: Quick setup, Data visualization focus, Python ecosystem
+
+➡️ **[View detailed setup guide](./streamlit_polkaguardian/SETUP.md)**
+
+## 📋 Prerequisites
+
+### For Next.js App
+- Node.js 18+ 
+- npm or yarn
+- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+- (Optional) Subscan API key
+
+### For Streamlit App
+- Python 3.10+
+- pip
+- OpenAI API key
+- Subscan API key
+
+## 🔑 Environment Variables
+
+### Next.js App (.env.local)
+```env
+OPENAI_API_KEY=sk_...
+OPENAI_ASSISTANT_ID=asst_...  # Set by setup-assistant script
+SUBSCAN_API_KEY=your_key      # Optional
 ```
 
-4. Configure API keys:
-Create a `.streamlit/secrets.toml` file:
-```toml
-SUBSCAN_API_KEY = "your-subscan-api-key"
-OPENAI_API_KEY = "your-openai-api-key"  # Optional, for AI features
+### Streamlit App (.env)
+```env
+OPENAI_API_KEY=sk_...
+SUBSCAN_API_KEY=your_key
 ```
 
-## Usage
+See `.env.example` in each app folder for complete templates.
 
-Run the dashboard:
+## 🎨 Design Highlights
+
+- **Polkadot Brand Colors**: Primary Pink (#E6007A) and Polkadot Pink (#FF2670)
+- **Dark Theme**: Professional dark mode with pink accents
+- **Glass Morphism**: Modern card designs with subtle depth
+- **Responsive**: Works beautifully on desktop, tablet, and mobile
+- **Smooth Animations**: Polished interactions and transitions
+
+## 🤖 AI Assistant System
+
+Polka Guardian uses a **hybrid AI approach** for optimal performance:
+
+### Wallet Assistant
+- Pre-cleaned wallet data passed directly to GPT-4 Turbo
+- Fast, cost-effective responses (~$0.0001 per query)
+- Instant answers about your wallet
+
+### Governance Assistant  
+- OpenAI Assistants API with file search
+- Searches through voter and proposal CSV datasets
+- Maintains conversation threads
+- Provides contextual insights (~$0.01-0.05 per query)
+
+This hybrid approach ensures **speed** for wallet queries and **power** for governance analysis.
+
+## 📈 API Rate Limiting
+
+The app respects Subscan's rate limit of **5 API calls per second** with intelligent queuing and 2-second delays between batches.
+
+## 🔍 How to Use
+
+### Wallet Analytics
+1. Enter a Polkadot/Kusama wallet address
+2. Select the chain (Polkadot or Kusama)
+3. View instant analytics: balance, transfers, staking, voting history
+4. Ask the AI chatbot about your wallet
+
+### Governance Lookup
+1. Navigate to Governance Monitor
+2. Enter a wallet address to search voters
+3. View voting history, patterns, and statistics
+4. Explore recent proposals
+5. Select a proposal to see AI-generated analysis
+
+### AI Chat
+- **Wallet Questions**: "What's my balance?", "Show recent transfers"
+- **Governance Questions**: "Who are the top voters?", "Summarize proposal 123"
+- **Smart Mode Selection**: App automatically detects which assistant to use
+
+## 📊 Viewing Data
+
+All data is displayed in modern, interactive formats:
+- **Tables**: Pagination, sorting, filtering (configurable items per page)
+- **Charts**: Interactive visualizations with Polkadot pink color scheme
+- **Cards**: Clean metric displays with visual hierarchy
+- **Profiles**: Detailed voter cards with voting statistics
+
+## 🏗️ Project Structure
+
+```
+polkadot_dashboard/
+├── polka_guardian_vercel/        # Next.js web app (recommended)
+│   ├── app/                      # Next.js 14 App Router
+│   │   ├── api/                  # API routes
+│   │   ├── globals.css           # Global styles
+│   │   └── page.tsx              # Home page
+│   ├── components/               # React components
+│   │   ├── chat/                 # Chat components
+│   │   ├── charts/               # Chart components
+│   │   ├── governance/           # Governance features
+│   │   ├── ui/                   # Reusable UI components
+│   │   └── wallet/               # Wallet features
+│   ├── lib/                      # Utilities and store
+│   ├── public/                   # Static assets
+│   │   └── data/                 # Governance CSV files
+│   ├── scripts/                  # Setup scripts
+│   ├── SETUP.md                  # Detailed setup guide
+│   └── package.json              # Dependencies
+│
+├── streamlit_polkaguardian/      # Python Streamlit app
+│   ├── dashboard.py              # Main app
+│   ├── subscan.py                # Subscan API client
+│   ├── chart_components.py       # Chart utilities
+│   ├── governace_app/            # Governance module
+│   ├── SETUP.md                  # Setup guide
+│   └── requirements.txt          # Python dependencies
+│
+└── README.md                     # This file
+```
+
+## 🔗 Links & Resources
+
+- **[Polkadot](https://polkadot.network/)** - Main network
+- **[Kusama](https://kusama.network/)** - Canary network
+- **[Subscan API](https://www.subscan.io/)** - Block explorer & API
+- **[Dune Analytics](https://dune.com/substrate)** - Data analytics platform
+- **[Polkassembly](https://polkassembly.io/)** - Governance platform
+- **[OpenAI Platform](https://platform.openai.com/)** - AI API
+
+## 🚢 Deployment
+
+### Deploy Next.js App to Vercel
+
+**One-click deploy:**
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
+**Manual deployment:**
+
+1. Push code to GitHub
+2. Create Vercel project
+3. Connect your repository
+4. Add environment variables:
+   - `OPENAI_API_KEY`
+   - `OPENAI_ASSISTANT_ID` (from setup script)
+5. Deploy
+
+**CLI deployment:**
 ```bash
+npm run build
+vercel deploy
+```
+
+### Run Streamlit App Locally
+
+```bash
+cd streamlit_polkaguardian
+source .venv/bin/activate
 streamlit run dashboard.py
 ```
 
-The dashboard will open in your browser at `http://localhost:8501`.
+For production Streamlit deployment, see [Streamlit Cloud](https://streamlit.io/cloud).
 
-## Navigation Flow
+## 📝 License
 
-### Initial Load
-1. Dashboard opens to **Ecosystem Overview** by default
-2. View ecosystem-wide metrics and treasury flow
-3. Enter a wallet address to explore specific account data
+This project is open source and available under the MIT License.
 
-### After Wallet Entry
-1. Enter wallet address and select network
-2. Click "Fetch Account Data" button
-3. Both wallet activity AND governance data load automatically
-4. Navigate between three views:
-   - **Ecosystem Overview**: Network-wide statistics
-   - **Wallet Activity**: Your account analytics
-   - **Governance Monitor**: Governance participation and proposals
+## 🤝 Contributing
 
-### View Switching
-- Use radio buttons to switch between views
-- All data persists in session state
-- No need to re-enter wallet address when switching views
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Data Sources
+**Guidelines:**
+- Follow existing code style and conventions
+- Use Polkadot pink colors for new UI elements
+- Add proper error handling
+- Include comments for complex logic
+- Test your changes thoroughly
 
-- **Wallet Data**: Subscan API (multi-chain support)
-- **Governance Data**: CSV files in `governace_app/data/`
-  - `polkadot_voters.csv`: Voter participation records
-  - `proposals.csv`: Governance proposals
-  - `monthly_voters_voting_power_by_type.csv`: Monthly voting trends
-  - `polkadot_ecosystem_metrics_raw_data.csv`: Ecosystem metrics
-  - `polkadot_treasury_flow.csv`: Treasury flow data
+## 📞 Support
 
-## Project Structure
+For questions or issues:
+1. Check the [setup guides](./polka_guardian_vercel/SETUP.md)
+2. Review the [API documentation](./polka_guardian_vercel/API_DOCUMENTATION.md)
+3. Check existing GitHub issues
+4. Open a new issue with detailed information
 
-```
-.
-├── dashboard.py                    # Main Streamlit application
-├── chart_components.py             # Reusable chart rendering functions
-├── subscan.py                      # Subscan API utilities
-├── governace_app/
-│   ├── data/                       # Governance and ecosystem CSV data
-│   └── charts.py                   # Standalone charts (legacy)
-├── requirements.txt                # Python dependencies
-├── .streamlit/
-│   └── secrets.toml                # API keys (not in git)
-└── README.md                       # This file
-```
+## 🎯 Hackathon Submission
 
-## Key Components
+**Theme**: User-centric Apps  
+**Prize Pool**: $40K  
+**Focus**: Bringing Web2 UX to Web3 governance
 
-### `dashboard.py`
-- Main application with three-view layout
-- Wallet input and data fetching
-- Session state management
-- AI chat sidebar
+This project demonstrates how Web2 user experience principles can enhance Web3 applications, specifically in the Polkadot ecosystem. We prioritize:
 
-### `chart_components.py`
-- `render_monthly_voters_voting_power()`: Monthly voting trends
-- `render_ecosystem_basic_metrics()`: Ecosystem statistics
-- `render_treasury_flow()`: Treasury flow visualization
+- **Intuitive Design**: Clean, familiar interface that doesn't require blockchain expertise
+- **Real-time Data**: Instant access to on-chain information
+- **AI Integration**: Natural language interaction with complex blockchain data
+- **Comprehensive Analytics**: All the data users need in one place
+- **Beautiful UI**: Professional design with Polkadot branding
 
-### `subscan.py`
-- API wrappers for Subscan endpoints
-- Data fetching and processing utilities
-- Multi-chain support
+## 🎉 Key Achievements
 
-## Session State
+- ✅ **Full-Stack Application**: Modern Next.js frontend + API backend
+- ✅ **Dual Implementation**: Both Next.js and Streamlit versions
+- ✅ **AI Integration**: Hybrid chat system with file search
+- ✅ **Real-time Data**: Live blockchain data via Subscan
+- ✅ **Beautiful UI**: Polkadot brand colors and modern design
+- ✅ **Comprehensive Docs**: Setup guides, API docs, and README
+- ✅ **Production Ready**: Deployable to Vercel with one click
 
-The dashboard uses Streamlit session state to persist:
-- `wallet_address`: Currently loaded wallet
-- `selected_chain`: Selected blockchain network
-- `current_view`: Active view (Ecosystem/Wallet/Governance)
-- `data_section`: Wallet account data
-- `governance_voters`: Governance voter data
-- `governance_proposals`: Proposal data
-- `chat_messages`: AI chat history
-- Various DataFrames for transfers, extrinsics, staking, votes
+## 📈 Future Enhancements
 
-## Styling
+Potential future features:
+- Multi-wallet tracking dashboard
+- Push notifications for governance events
+- Historical voting analysis and trends
+- Wallet comparison tools
+- Mobile app (React Native)
+- Browser extension
+- Custom alerts and reminders
 
-The dashboard features a professional dark theme with:
-- Gradient color schemes (blues/purples)
-- Custom CSS for metrics, cards, and containers
-- Inter font family for typography
-- Smooth transitions and hover effects
-- Responsive layout
+## 🙏 Acknowledgments
 
-## Requirements
+Built with ❤️ for the Polkadot community.
 
-- Python 3.8+
-- streamlit
-- pandas
-- plotly
-- openai
-- requests
+Special thanks to:
+- **Polkadot/Web3 Foundation** - For the amazing blockchain ecosystem
+- **Subscan** - For comprehensive block explorer API
+- **Dune Analytics** - For governance data analytics
+- **OpenAI** - For powerful AI capabilities
+- **Vercel** - For seamless deployment platform
 
-See `requirements.txt` for full dependency list.
+## 📸 Screenshots
 
-## API Keys
+### Dashboard Overview
+Beautiful, modern interface with Polkadot pink theme and smooth animations.
 
-### Subscan API Key (Required)
-Get your API key from [Subscan.io](https://support.subscan.io/#introduction)
+### Wallet Analytics
+Comprehensive view of balances, transfers, and staking information.
 
-### OpenAI API Key (Optional)
-Required only for AI assistant features. Get from [OpenAI Platform](https://platform.openai.com/)
+### Governance Monitor  
+Search voters, explore proposals, and get AI-powered insights.
 
-## Contributing
+### AI Assistant
+Hybrid chat system for wallet and governance queries.
 
-This dashboard integrates governance charts directly into the main flow for a seamless user experience. When adding new features:
+---
 
-1. Use session state for data persistence
-2. Follow existing UI/UX patterns and styling
-3. Add error handling with try/except blocks
-4. Use st.cache_data for data loading functions
-5. Keep chart functions modular in `chart_components.py`
+**Built with ❤️ for the Polkadot Hackathon**
 
-## License
+**Live Demo**: [Coming Soon]  
+**Documentation**: See setup guides in each app folder  
+**Support**: Open an issue on GitHub
 
-[Your License Here]
-
-## Support
-
-For issues or questions, please open an issue on GitHub.
+🚀 **Ready to explore Polkadot governance like never before!**

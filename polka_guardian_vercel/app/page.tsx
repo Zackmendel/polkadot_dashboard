@@ -12,6 +12,7 @@ import { VoterLookup } from '@/components/governance/VoterLookup'
 import { ProposalDetails } from '@/components/governance/ProposalDetails'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Globe, Wallet, Vote } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
@@ -40,9 +41,18 @@ export default function Home() {
     <main className="min-h-screen p-4 md:p-8">
       <div className="max-w-[2000px] mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-2">
-            🌐 Polka Guardian
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <Image 
+              src="/assets/polkadot-logo.svg" 
+              alt="Polkadot Logo" 
+              width={48} 
+              height={48}
+              className="animate-pulse"
+            />
+            <h1 className="text-4xl md:text-5xl font-bold gradient-text">
+              Polka Guardian
+            </h1>
+          </div>
           <p className="text-muted-foreground text-lg">
             Professional Multi-Chain Account & Governance Analytics
           </p>

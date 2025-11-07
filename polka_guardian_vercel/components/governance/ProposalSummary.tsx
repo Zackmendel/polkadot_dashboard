@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Bot, Loader2, FileText } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import axios from 'axios'
 
 interface Proposal {
@@ -31,23 +32,42 @@ export function ProposalSummary({ proposal }: ProposalSummaryProps) {
     setIsLoading(true)
     
     try {
-      const response = await axios.post('/api/chat/assistant', {
-        message: `Please provide a concise summary of this governance proposal:
+      // Build comprehensive proposal context
+      const totalVotes = (proposal.ayeVotes || 0) + (proposal.nayVotes || 0) + (proposal.abstainVotes || 0)
+      
+      // Enhanced prompt with full context
+      const detailedPrompt = `You are a Polkadot governance expert. Analyze this proposal comprehensively:
 
-Referendum ID: ${proposal.id}
+PROPOSAL DATA:
+Referendum ID: #${proposal.id}
 Chain: ${proposal.chain || 'Polkadot'}
-Status: ${proposal.status || 'Unknown'}
 Track: ${proposal.track || 'Unknown'}
-Title: ${proposal.title || 'No title'}
-Description: ${proposal.description?.substring(0, 500) || 'No description'}${proposal.description && proposal.description.length > 500 ? '...' : ''}
+Status: ${proposal.status || 'Unknown'}
 
-Voting Results:
-- Aye: ${proposal.ayeVotes || 0}
-- Nay: ${proposal.nayVotes || 0}
-- Abstain: ${proposal.abstainVotes || 0}
+TITLE: ${proposal.title || 'No title provided'}
 
-Summarize what this proposal is about and the outcome in 2-3 sentences. Focus on the main purpose and key voting results.`,
-        threadId: null, // New thread for each summary
+DESCRIPTION/DETAILS:
+${proposal.description || 'No description available'}
+
+VOTING RESULTS:
+- Aye Votes: ${(proposal.ayeVotes || 0).toLocaleString()}
+- Nay Votes: ${(proposal.nayVotes || 0).toLocaleString()}
+- Abstain Votes: ${(proposal.abstainVotes || 0).toLocaleString()}
+- Total Votes: ${totalVotes.toLocaleString()}
+
+Please provide a comprehensive analysis with the following sections:
+
+1. **Summary**: What is this proposal about? (2-3 sentences)
+2. **Key Details**: Main objectives and implementation approach
+3. **Voting Analysis**: What the vote results indicate about community sentiment
+4. **Implications**: What this means for the Polkadot/Kusama ecosystem
+5. **Recommendation**: Based on the data, assess whether the community decision aligns with ecosystem interests
+
+Use the EXACT data provided above. Do not say data is missing if it's provided in the fields above. Format your response with clear sections and markdown formatting.`
+      
+      const response = await axios.post('/api/chat/assistant', {
+        message: detailedPrompt,
+        threadId: null, // Fresh thread for each summary
       })
 
       setSummary(response.data.message)
@@ -100,8 +120,8 @@ Summarize what this proposal is about and the outcome in 2-3 sentences. Focus on
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm leading-relaxed">{summary}</p>
+              <div className="bg-muted/50 rounded-lg p-4 prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown>{summary}</ReactMarkdown>
               </div>
               <Button 
                 variant="outline" 
