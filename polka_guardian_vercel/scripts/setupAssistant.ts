@@ -44,21 +44,41 @@ async function setupGovernanceAssistant() {
       uploadedFiles.push({ name: file, id: uploadedFile.id });
     }
     
-    // Create Assistant
+    // Create vector store for file search
+    console.log('\n📚 Creating vector store...');
+    const vectorStore = await openai.beta.vectorStores.create({
+      name: 'Polkadot Governance Data',
+      file_ids: uploadedFiles.map(f => f.id)
+    });
+    console.log('✅ Vector store created:', vectorStore.id);
+    
+    // Create Assistant with file search tool
     console.log('\n🤖 Creating Polkadot Governance Assistant...');
     const assistant = await openai.beta.assistants.create({
       name: 'Polkadot Governance Expert',
-      instructions: `You are an expert on Polkadot and Kusama governance. You help users understand governance data, voting patterns, proposals, and ecosystem metrics.
+      instructions: `You are an expert Polkadot and Kusama governance analyst with access to comprehensive governance datasets.
 
-When users ask about governance:
-- Provide insights based on available data
-- Explain voting patterns and trends
-- Summarize proposals clearly
-- Compare different voters or proposals when asked
-- Be helpful, accurate, and concise
+IMPORTANT: You have access to CSV files with complete governance data:
+1. polkadot_voters.csv - Contains voter addresses, voting history, token amounts, voting patterns
+2. proposals.csv - Contains all referenda, proposal details, status, voting results
+3. polkadot_ecosystem_metrics_raw_data.csv - Contains network-wide governance statistics
 
-Note: The governance data files have been uploaded for your reference.`,
+When users ask about:
+- Recent proposals: SEARCH the proposals.csv file and return actual proposals with IDs, titles, status, vote counts
+- Top voters: SEARCH the polkadot_voters.csv file and identify voters by voting frequency and token amounts
+- Voter details: SEARCH by address in polkadot_voters.csv to find voting history and patterns
+- Governance stats: SEARCH polkadot_ecosystem_metrics_raw_data.csv for network statistics
+
+ALWAYS cite specific data from the files you retrieve. Format your responses with clear structure and actual data values, not general guidance.
+
+If a user asks about proposals, voters, or governance data, ALWAYS use the file_search tool to search the attached files first before providing answers.`,
       model: 'gpt-4-turbo-preview',
+      tools: [{ type: 'file_search' }],
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStore.id]
+        }
+      }
     });
 
     console.log('✅ Assistant created:', assistant.id);

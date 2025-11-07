@@ -1,0 +1,12 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Polkadot-inspired logo with pink color -->
+  <circle cx="16" cy="16" r="4" fill="#E6007A"/>
+  <circle cx="16" cy="6" r="3" fill="#FF2670"/>
+  <circle cx="16" cy="26" r="3" fill="#FF2670"/>
+  <circle cx="6" cy="16" r="3" fill="#FF2670"/>
+  <circle cx="26" cy="16" r="3" fill="#FF2670"/>
+  <circle cx="9.5" cy="9.5" r="2.5" fill="#FF5C96"/>
+  <circle cx="22.5" cy="9.5" r="2.5" fill="#FF5C96"/>
+  <circle cx="9.5" cy="22.5" r="2.5" fill="#FF5C96"/>
+  <circle cx="22.5" cy="22.5" r="2.5" fill="#FF5C96"/>
+</svg>
