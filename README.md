@@ -244,7 +244,7 @@ polkadot_dashboard/
 - **[Polkadot](https://polkadot.network/)** - Main network
 - **[Kusama](https://kusama.network/)** - Canary network
 - **[Subscan API](https://www.subscan.io/)** - Block explorer & API
-- **[Dune Analytics](https://dune.com/substrate)** - Data analytics platform
+- **[Substrate Dune Analytics](https://dune.com/substrate)** - Data analytics platform
 - **[Polkassembly](https://polkassembly.io/)** - Governance platform
 - **[OpenAI Platform](https://platform.openai.com/)** - AI API
 
@@ -307,8 +307,7 @@ For questions or issues:
 
 ## 🎯 Hackathon Submission
 
-**Theme**: User-centric Apps  
-**Prize Pool**: $40K  
+**Theme**: User-centric Apps   
 **Focus**: Bringing Web2 UX to Web3 governance
 
 This project demonstrates how Web2 user experience principles can enhance Web3 applications, specifically in the Polkadot ecosystem. We prioritize:
@@ -347,7 +346,7 @@ Built with ❤️ for the Polkadot community.
 Special thanks to:
 - **Polkadot/Web3 Foundation** - For the amazing blockchain ecosystem
 - **Subscan** - For comprehensive block explorer API
-- **Dune Analytics** - For governance data analytics
+- **Substrate's Dune Analytics Data** - For governance data analytics
 - **OpenAI** - For powerful AI capabilities
 - **Vercel** - For seamless deployment platform
 
