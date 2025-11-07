@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,135 +8,182 @@ const openai = new OpenAI({
 
 async function setupGovernanceAssistant() {
   try {
-    console.log('📁 Uploading governance data files...');
+    console.log('🚀 Polka Guardian Governance Assistant Setup\n');
     
-    const dataDir = path.join(process.cwd(), 'public', 'data');
+    // Step 1: Upload CSV files
+    console.log('📁 Uploading governance data files...\n');
     
-    // Check if data directory exists
+    const dataDir = path.join(process.cwd(), 'public/data');
+    
     if (!fs.existsSync(dataDir)) {
       console.error('❌ Data directory not found:', dataDir);
       process.exit(1);
     }
     
-    const files = fs.readdirSync(dataDir);
-    const csvFiles = files.filter(f => f.endsWith('.csv'));
+    const csvFiles = fs.readdirSync(dataDir).filter(f => f.endsWith('.csv'));
+    console.log(`Found CSV files: [${csvFiles.map(f => `'${f}'`).join(', ')}]\n`);
     
-    if (csvFiles.length === 0) {
-      console.error('❌ No CSV files found in data directory');
+    const uploadedFileIds: string[] = [];
+    
+    for (const csvFile of csvFiles) {
+      const filePath = path.join(dataDir, csvFile);
+      console.log(`Uploading ${csvFile}...`);
+      
+      try {
+        const file = await openai.files.create({
+          file: fs.createReadStream(filePath),
+          purpose: 'assistants',
+        });
+        
+        console.log(`✅ ${csvFile} uploaded: ${file.id}\n`);
+        uploadedFileIds.push(file.id);
+      } catch (error) {
+        console.error(`❌ Failed to upload ${csvFile}:`, error);
+        throw error;
+      }
+    }
+    
+    if (uploadedFileIds.length === 0) {
+      console.error('❌ No CSV files were uploaded');
       process.exit(1);
     }
     
-    console.log('Found CSV files:', csvFiles);
+    // Step 2: Create Assistant with uploaded files
+    console.log('\n🤖 Creating Polkadot Governance Assistant...\n');
     
-    const uploadedFiles: any[] = [];
-    
-    // Upload each CSV file
-    for (const file of csvFiles) {
-      const filePath = path.join(dataDir, file);
-      console.log(`Uploading ${file}...`);
-      
-      const uploadedFile = await openai.files.create({
-        file: fs.createReadStream(filePath),
-        purpose: 'assistants',
-      });
-      
-      console.log(`✅ ${file} uploaded:`, uploadedFile.id);
-      uploadedFiles.push({ name: file, id: uploadedFile.id });
-    }
-    
-    // Create vector store for file search
-    console.log('\n📚 Creating vector store...');
-    const vectorStore = await openai.beta.vectorStores.create({
-      name: 'Polkadot Governance Data',
-      file_ids: uploadedFiles.map(f => f.id)
-    });
-    console.log('✅ Vector store created:', vectorStore.id);
-    
-    // Create Assistant with file search tool
-    console.log('\n🤖 Creating Polkadot Governance Assistant...');
-    const assistant = await openai.beta.assistants.create({
-      name: 'Polkadot Governance Expert',
-      instructions: `You are an expert Polkadot and Kusama governance analyst with access to comprehensive governance datasets.
+    const systemInstructions = `You are an expert Polkadot and Kusama governance analyst with access to comprehensive governance datasets.
 
-IMPORTANT: You have access to CSV files with complete governance data:
-1. polkadot_voters.csv - Contains voter addresses, voting history, token amounts, voting patterns
-2. proposals.csv - Contains all referenda, proposal details, status, voting results
-3. polkadot_ecosystem_metrics_raw_data.csv - Contains network-wide governance statistics
+CRITICAL: You have access to CSV files containing complete governance data:
+- polkadot_voters.csv - Voter addresses, voting history, token amounts, voting patterns
+- proposals.csv - All referenda, proposal details, status, voting results  
+- polkadot_ecosystem_metrics_raw_data.csv - Network-wide governance statistics
+- monthly_voters_voting_power_by_type.csv - Monthly voter activity metrics
+- polkadot_treasury_flow.csv - Treasury funding and allocation data
+- polkadot_number_of_referenda_by_outcome_opengov.csv - Referenda outcome statistics
 
 When users ask about:
-- Recent proposals: SEARCH the proposals.csv file and return actual proposals with IDs, titles, status, vote counts
-- Top voters: SEARCH the polkadot_voters.csv file and identify voters by voting frequency and token amounts
-- Voter details: SEARCH by address in polkadot_voters.csv to find voting history and patterns
-- Governance stats: SEARCH polkadot_ecosystem_metrics_raw_data.csv for network statistics
+- Recent proposals: ALWAYS search proposals.csv first. Return actual proposal IDs, titles, status, vote counts from the file
+- Top voters: ALWAYS search polkadot_voters.csv. Identify voters by voting frequency and token amounts with real data
+- Voter details: Search by exact address in polkadot_voters.csv to find complete voting history
+- Governance statistics: Search ecosystem_metrics_raw_data.csv for real network statistics
+- Voting trends: Search monthly_voters_voting_power_by_type.csv for temporal patterns
 
-ALWAYS cite specific data from the files you retrieve. Format your responses with clear structure and actual data values, not general guidance.
+IMPORTANT RULES:
+1. ALWAYS use the retrieval tool to search the attached files
+2. CITE specific data from files with actual numbers, not general information
+3. NEVER say "I don't have access" if data is in the files
+4. Format responses with clear sections: Summary, Key Data, Insights, Recommendations
+5. Include specific proposal IDs, voter addresses (shortened), and vote counts from actual data
 
-If a user asks about proposals, voters, or governance data, ALWAYS use the file_search tool to search the attached files first before providing answers.`,
-      model: 'gpt-4-turbo-preview',
-      tools: [{ type: 'file_search' }],
-      tool_resources: {
-        file_search: {
-          vector_store_ids: [vectorStore.id]
+Be helpful, accurate, and provide concrete data from the governance files.`;
+    
+    try {
+      // Create vector store and add files
+      console.log('📚 Creating vector store and adding files...');
+      const vectorStore = await openai.vectorStores.create({
+        name: 'Polkadot Governance Data',
+        file_ids: uploadedFileIds
+      });
+      
+      // Wait for vector store to be processed
+      console.log('⏳ Waiting for vector store processing...');
+      let vectorStoreReady = false;
+      let attempts = 0;
+      const maxAttempts = 30; // Wait up to 30 seconds
+      
+      while (!vectorStoreReady && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        const status = await openai.vectorStores.retrieve(vectorStore.id);
+        console.log(`   Status: ${status.status} (${attempts + 1}/${maxAttempts})`);
+        
+        if (status.status === 'completed') {
+          vectorStoreReady = true;
+        } else if (status.status === 'expired') {
+          throw new Error('Vector store processing expired');
         }
-      }
-    });
-
-    console.log('✅ Assistant created:', assistant.id);
-    console.log('\n📝 Add these to your .env.local file:');
-    console.log(`OPENAI_ASSISTANT_ID=${assistant.id}`);
-    
-    uploadedFiles.forEach(file => {
-      const envVar = `OPENAI_${file.name.replace('.csv', '').toUpperCase()}_FILE_ID`;
-      console.log(`${envVar}=${file.id}`);
-    });
-    
-    // Save to .env.local if it exists
-    const envPath = path.join(process.cwd(), '.env.local');
-    if (fs.existsSync(envPath)) {
-      let envContent = fs.readFileSync(envPath, 'utf-8');
-      
-      // Update or add the assistant ID
-      if (envContent.includes('OPENAI_ASSISTANT_ID=')) {
-        envContent = envContent.replace(/OPENAI_ASSISTANT_ID=.*/, `OPENAI_ASSISTANT_ID=${assistant.id}`);
-      } else {
-        envContent += `\nOPENAI_ASSISTANT_ID=${assistant.id}`;
+        
+        attempts++;
       }
       
-      // Update or add file IDs
-      uploadedFiles.forEach(file => {
-        const envVar = `OPENAI_${file.name.replace('.csv', '').toUpperCase()}_FILE_ID`;
-        if (envContent.includes(`${envVar}=`)) {
-          envContent = envContent.replace(new RegExp(`${envVar}=.*`), `${envVar}=${file.id}`);
-        } else {
-          envContent += `\n${envVar}=${file.id}`;
+      if (!vectorStoreReady) {
+        console.warn('⚠️ Vector store still processing, continuing anyway...');
+      }
+      
+      // Create assistant with vector store
+      const assistant = await openai.beta.assistants.create({
+        name: 'Polkadot Governance Expert',
+        description: 'Expert analyst for Polkadot governance data and voting patterns',
+        instructions: systemInstructions,
+        model: 'gpt-4-turbo-preview',
+        tools: [
+          { 
+            type: 'file_search' 
+          }
+        ],
+        tool_resources: {
+          file_search: {
+            vector_store_ids: [vectorStore.id]
+          }
         }
       });
       
-      fs.writeFileSync(envPath, envContent);
-      console.log('\n✅ Updated .env.local file');
+      console.log('✅ Assistant created successfully!\n');
+      console.log('='.repeat(60));
+      console.log('Assistant Information:');
+      console.log('='.repeat(60));
+      console.log(`\n📌 Assistant ID: ${assistant.id}`);
+      console.log(`📌 Name: ${assistant.name}`);
+      console.log(`📌 Model: ${assistant.model}`);
+      console.log(`📌 Files Attached: ${uploadedFileIds.length}`);
+      
+      console.log('\n' + '='.repeat(60));
+      console.log('📝 ADD TO YOUR .env.local FILE:');
+      console.log('='.repeat(60));
+      console.log(`\nOPENAI_ASSISTANT_ID=${assistant.id}\n`);
+      
+      console.log('🎉 Setup complete!\n');
+      console.log('Next steps:');
+      console.log('1. Copy the OPENAI_ASSISTANT_ID above');
+      console.log('2. Add it to your .env.local file');
+      console.log('3. Restart your development server');
+      console.log('4. Test the governance chatbot\n');
+      
+      return assistant;
+      
+    } catch (error) {
+      console.error('❌ Error creating assistant:');
+      if (error instanceof Error) {
+        console.error('Message:', error.message);
+        console.error('Stack:', error.stack);
+      } else {
+        console.error(error);
+      }
+      throw error;
     }
     
-    return assistant;
-    
   } catch (error) {
-    console.error('❌ Error setting up assistant:', error);
-    throw error;
+    console.error('\n' + '='.repeat(60));
+    console.error('💥 Setup failed');
+    console.error('='.repeat(60));
+    
+    if (error instanceof Error) {
+      console.error('Error:', error.message);
+      console.error('Stack:', error.stack);
+    } else {
+      console.error('Error:', error);
+    }
+    
+    console.error('\n❓ Troubleshooting:');
+    console.error('1. Verify OPENAI_API_KEY is set in .env.local');
+    console.error('2. Check that your API key is valid');
+    console.error('3. Ensure CSV files exist in public/data/');
+    console.error('4. Check OpenAI account has sufficient credits');
+    console.error('5. Try running: npm run setup-assistant again\n');
+    
+    process.exit(1);
   }
 }
 
-// Run setup if this file is executed directly
-if (require.main === module) {
-  setupGovernanceAssistant()
-    .then(() => {
-      console.log('\n🎉 Setup completed successfully!');
-      console.log('\n⚠️  Note: This simplified version creates a basic assistant.');
-      console.log('For advanced file search capabilities, you may need to manually configure vector stores.');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('\n💥 Setup failed:', error);
-      process.exit(1);
-    });
-}
-
-export default setupGovernanceAssistant;
+// Run setup
+console.log('Starting setup...\n');
+setupGovernanceAssistant();
