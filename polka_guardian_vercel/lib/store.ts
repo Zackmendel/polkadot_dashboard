@@ -92,7 +92,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set) => ({
   walletAddress: '',
-  selectedChain: 'Polkadot',
+  selectedChain: 'Assethub-polkadot',
   currentView: 'ecosystem',
   walletData: null,
   governanceData: {},
