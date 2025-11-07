@@ -4,17 +4,17 @@ import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useChatStore } from '@/lib/store'
 
-export function GovernanceChat() {
+export function WalletChat() {
   const {
-    governanceChat,
-    addGovernanceMessage,
-    setGovernanceThreadId,
-    clearGovernanceChat,
+    walletChat,
+    walletContext,
+    addWalletMessage,
+    clearWalletChat,
   } = useChatStore((state) => ({
-    governanceChat: state.governanceChat,
-    addGovernanceMessage: state.addGovernanceMessage,
-    setGovernanceThreadId: state.setGovernanceThreadId,
-    clearGovernanceChat: state.clearGovernanceChat,
+    walletChat: state.walletChat,
+    walletContext: state.walletContext,
+    addWalletMessage: state.addWalletMessage,
+    clearWalletChat: state.clearWalletChat,
   }))
 
   const [input, setInput] = useState('')
@@ -23,25 +23,29 @@ export function GovernanceChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [governanceChat.messages])
+  }, [walletChat.messages])
 
   const handleSendMessage = async () => {
     const trimmed = input.trim()
     if (!trimmed || isLoading) return
 
     const userMessage = { role: 'user' as const, content: trimmed }
+    const outgoingMessages = [...walletChat.messages, userMessage]
 
-    addGovernanceMessage(userMessage)
+    addWalletMessage(userMessage)
     setInput('')
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/chat/assistant', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: trimmed,
-          threadId: governanceChat.threadId,
+          messages: outgoingMessages.map(({ role, content }) => ({ role, content })),
+          context: null,
+          contextType: 'wallet',
+          walletContext,
+          useAssistant: false,
         }),
       })
 
@@ -51,17 +55,13 @@ export function GovernanceChat() {
 
       const data = await response.json()
 
-      if (data.threadId && data.threadId !== governanceChat.threadId) {
-        setGovernanceThreadId(data.threadId)
-      }
-
-      addGovernanceMessage({
+      addWalletMessage({
         role: 'assistant',
-        content: data.message ?? 'I could not find relevant governance data right now.',
+        content: data.message ?? 'I’m not sure how to answer that just yet.',
       })
     } catch (error) {
-      console.error('Governance chat error:', error)
-      addGovernanceMessage({
+      console.error('Wallet chat error:', error)
+      addWalletMessage({
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
       })
@@ -78,23 +78,23 @@ export function GovernanceChat() {
   }
 
   const handleClearChat = () => {
-    clearGovernanceChat()
+    clearWalletChat()
     setInput('')
   }
 
   return (
-    <div className="governance-chat-container">
+    <div className="wallet-chat-container">
       <div className="chat-header">
         <div>
-          <h3>🏛️ Governance AI Assistant</h3>
+          <h3>💰 Wallet AI Assistant</h3>
           <p className="text-sm">
-            Ask about voters, proposals, and governance statistics
+            Ask about your balance, transfers, and staking
           </p>
         </div>
         <button
           type="button"
           onClick={handleClearChat}
-          disabled={governanceChat.messages.length === 0 && !governanceChat.threadId}
+          disabled={walletChat.messages.length === 0 && !walletChat.threadId}
           className="chat-clear-button"
         >
           Clear
@@ -103,12 +103,14 @@ export function GovernanceChat() {
 
       <div className="chat-messages-container">
         <div className="messages-scroll">
-          {governanceChat.messages.length === 0 && !isLoading ? (
+          {walletChat.messages.length === 0 && !isLoading ? (
             <div className="empty-state">
-              <p>Start a conversation! Ask me about governance data.</p>
+              <p>
+                Start a conversation! Ask me how much is transferable, who you last sent funds to, or what your staking rewards look like.
+              </p>
             </div>
           ) : (
-            governanceChat.messages.map((message, index) => {
+            walletChat.messages.map((message, index) => {
               const timestamp = message.timestamp
                 ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 : null
@@ -140,7 +142,7 @@ export function GovernanceChat() {
                   <span />
                   <span />
                 </div>
-                Searching governance data...
+                Analyzing your wallet...
               </div>
             </div>
           )}
@@ -154,7 +156,7 @@ export function GovernanceChat() {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about governance data... (Shift+Enter for new line)"
+          placeholder="Ask about your wallet... (Shift+Enter for new line)"
           className="chat-input"
           disabled={isLoading}
           rows={1}
