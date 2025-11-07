@@ -1,7 +1,9 @@
 import axios from 'axios'
 
 export const CHAIN_OPTIONS: Record<string, string> = {
+  'Assethub-polkadot':	"assethub-polkadot",
   'Polkadot': 'polkadot',
+  'Assethub-kusama':	"assethub-kusama",
   'Kusama': 'kusama',
   'Acala': 'acala',
   'Astar': 'astar',
