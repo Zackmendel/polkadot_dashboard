@@ -106,6 +106,27 @@ Hybrid chat system for wallet and governance queries.
 
 **Important**: All data displayed in Polka Guardian is public blockchain data accessed through legitimate APIs and data platforms. We properly attribute all data sources and comply with their terms of service.
 
+## Project Limitations
+
+This project demonstrates strong potential; however, there are several limitations to its current implementation that users and reviewers should be aware of.
+
+### 1. Governance Data Availability
+
+Due to constraints encountered when attempting to fetch governance data through the Subscan API, real-time access to the required information was not feasible. As an alternative, governance data from Substrate’s Dune Analytics tables was used, supported by a dedicated dashboard. Because the cost of frequent API calls is high, the data was fetched once and stored locally as a CSV file for testing purposes. As a result, the governance data displayed in the current version of the application is not up to date.
+
+**Future Improvement:** Automated scheduled API calls or more cost-efficient data pipelines will be implemented in future iterations to ensure data freshness and reduce operational costs.
+
+### 2. AI Model Constraints
+
+The current AI module is still in an early stage of development. It lacks fine-tuning and does not yet have access to a comprehensive, structured knowledge base covering the full Polkadot ecosystem. This limits the model’s ability to handle certain edge cases and provide fully reliable recommendations for governance participation and wallet management.
+
+**Future Improvement:** A more advanced model with domain-specific training will be introduced. This will include expanding the model’s memory and integrating in-depth Polkadot governance documentation and contextual wallet data to improve accuracy and functionality.
+
+### Summary
+
+These limitations reflect intentional trade-offs made during early development to emphasize feasibility and prototype functionality. Upcoming versions will address these challenges through improved data pipelines, enhanced AI capabilities, and more scalable system design.
+
+
 ## 🚀 Getting Started
 
 ### Choose Your Version
