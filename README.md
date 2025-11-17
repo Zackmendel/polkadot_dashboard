@@ -14,6 +14,7 @@
 - **Governance Transparency**: Search voters, explore proposals, understand voting patterns  
 - **AI-Powered Insights**: Chat with AI about your wallet activity and governance questions
 - **Beautiful Design**: Modern UI with Polkadot brand colors and smooth interactions
+- **Check it out**: https://polkaguardian.vercel.app/
 
 ## 🌟 Features
 
