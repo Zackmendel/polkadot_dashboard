@@ -354,15 +354,22 @@ Special thanks to:
 
 ### Dashboard Overview
 Beautiful, modern interface with Polkadot pink theme and smooth animations.
+<img width="3240" height="2160" alt="image" src="https://github.com/user-attachments/assets/37b12254-3cde-410e-be1e-9a18d230ef6c" />
+
 
 ### Wallet Analytics
 Comprehensive view of balances, transfers, and staking information.
+<img width="3240" height="2160" alt="image" src="https://github.com/user-attachments/assets/e9382bf3-e3e3-4a3a-b743-183b95bd3606" />
+
 
 ### Governance Monitor  
 Search voters, explore proposals, and get AI-powered insights.
+<img width="3240" height="2160" alt="image" src="https://github.com/user-attachments/assets/f6af7f02-91d3-4c39-a60b-6eea95201d86" />
+
 
 ### AI Assistant
 Hybrid chat system for wallet and governance queries.
+<img width="3240" height="2160" alt="image" src="https://github.com/user-attachments/assets/7dcebd6e-24ad-4a28-b5f8-fbd5700a8394" />
 
 ---
 
